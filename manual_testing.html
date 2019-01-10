@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Websocket test</title>
+        <script type="text/javascript">
+            let websocket;
+            let latestEventElement;
+
+            function send() {
+                message = document.getElementById("input-message").value;
+                websocket.send(JSON.stringify({
+                    "command": "send_message",
+                    "content": message
+                }));
+            }
+
+            function fetch() {
+                websocket.send(JSON.stringify({"command": "poll"}))
+            }
+
+            window.onload = function() {
+                websocket = new WebSocket("ws://lo.steffo.eu:1234");
+                latestEventElement = document.getElementById("latest-event");
+                websocket.onopen = function() {
+
+                };
+                websocket.onmessage = function(e) {
+                    var j = JSON.parse(e.data);
+                    latestEventElement.textContent = JSON.stringify(j, null, "\t");
+                };
+                websocket.onclose = function() {
+
+                };
+
+                setInterval(fetch, 5000);
+            };
+        </script>
+    </head>
+    <body>
+        <h1>
+            Websockets!
+        </h1>
+        <h2>
+            Latest event
+        </h2>
+        <pre id="latest-event">
+        </pre>
+        <input id="input-message" type="text" placeholder="Message">
+        <button onclick="send()">Send</button>
+    </body>
+</html>
