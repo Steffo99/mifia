@@ -1,7 +1,10 @@
 class Client extends React.Component {
     render() {
-        if(this.props.mode === "Lobby") {
-            return <Lobby>Client</Lobby>
+        if(this.props.data.mode === "Lobby") {
+            return <Lobby games={this.props.data.lobby.games}
+                          events={this.props.data.lobby.events}
+                          users={this.props.data.lobby.users}
+                          currentUser={this.props.data.current_user}/>
         }
     }
 }
@@ -11,13 +14,14 @@ class Lobby extends React.Component {
         return (
             <div className="lobby-layout">
                 <div className="left">
-                    <CurrentGames/>
+                    <CurrentGames games={this.props.games}/>
                 </div>
                 <div className="center">
-                    <LobbyChat/>
+                    <LobbyChat events={this.props.events}
+                               currentUser={this.props.currentUser}/>
                 </div>
                 <div className="right">
-                    <ConnectedUsersList/>
+                    <ConnectedUsersList users={this.props.users}/>
                 </div>
             </div>
         )
@@ -26,37 +30,47 @@ class Lobby extends React.Component {
 
 class CurrentGames extends React.Component {
     render() {
+        //Create game listings from this.props.games
+        let game_listings = [];
+        for(let i = 0; i < this.props.games.length; i++) {
+            let game = this.props.games[i];
+            let game_listing = (
+                <GameListing name={game.name}
+                             status={game.status}
+                             players={game.players}
+                             maxPlayers={game.maxPlayers}
+                             key={game.guid}/>
+            );
+            game_listings.push(game_listing);
+        }
         return (
             <div className="box game-listing-box">
                 <div className="upper-box">
                     Current games
                 </div>
                 <div className="middle-box">
-                    <GameListing
-                        gameId={1}
-                        name="Town of Salem"
-                        status="joinable"
-                        players={6}
-                        maxPlayers={16}>
-                    </GameListing>
-                    <GameListing
-                        gameId={2}
-                        name="Thatguy's game"
-                        status="in-progress">
-                    </GameListing>
-                    <GameListing
-                        gameId={3}
-                        name="Mifia 15"
-                        status="joined"
-                        players={11}
-                        maxPlayers={16}>
-                    </GameListing>
+                    {game_listings}
                 </div>
                 <div className="lower-box">
                     <Button disabled={false} label="Create game" /*onClick={}*//>
                 </div>
             </div>
         )
+    }
+
+    refresh = function() {
+        ws.send(JSON.stringify({
+            "command": "lobby.get_games_list"
+        }))
+    }
+
+    componentDidMount() {
+        this.refresh();
+        this.refresher = setInterval(this.refresh, 2000)
+    }
+
+    componentWillUnmount() {
+        clearInterval(this.refresher)
     }
 }
 
@@ -85,7 +99,7 @@ class GameListing extends React.Component {
             button.disabled = false;
         }
         return (
-            <div className={`game-listing ${this.props.status}`} id={`game-listing-${this.props.gameId}`}>
+            <div className={`game-listing ${this.props.status}`}>
                 <div className="name">{this.props.name}</div>
                 <div className="status">{status}</div>
                 <div className="join">
@@ -114,21 +128,47 @@ class Button extends React.Component {
 
 class LobbyChat extends React.Component {
     render() {
+        //Create lobbychatmessages from this.props.messages
+        let events = [];
+        for(let i = 0; i < this.props.events.length; i++) {
+            let event = this.props.events[i];
+            //TODO: add other events
+            if(event.event === "UserSentMessageEvent") {
+                let node = <LobbyChatMessage sender={event.user}
+                                             content={event.message}
+                                             timestamp={event.timestamp}
+                                             key={event.guid}/>;
+                events.push(node);
+            }
+        }
         return (
             <div className="box chat-box">
                 <div className="upper-box">
                     Lobby chat
                 </div>
                 <div className="middle-box">
-                    <LobbyChatMessage sender={{name: "Steffo"}} content="Qualcuno fa una partita?"/>
-                    <LobbyChatMessage sender={{name: "Ciao123"}} content="Io, volentieri."/>
-                    <LobbyChatMessage sender={{name: "Edgyboi"}} content="Io no. Ho cose molto più importanti da fare."/>
+                    {events}
                 </div>
                 <div className="lower-box">
-                    <LobbyChatMessageBox sender={{name: "Steffo"}} disabled={false}/>
+                    <LobbyChatMessageBox currentUser={this.props.currentUser} disabled={false}/>
                 </div>
             </div>
         )
+    }
+
+    refresh = function() {
+        ws.send(JSON.stringify({
+            "command": "lobby.get_unread_messages"
+        }))
+    };
+
+    componentDidMount() {
+        this.refresh();
+        this.refresher = setInterval(this.refresh, 2000)
+    }
+
+    componentWillUnmount() {
+        clearInterval(this.refresher)
     }
 }
 
@@ -137,7 +177,7 @@ class LobbyChatMessage extends React.Component {
         return (
             <div className="message">
                 <div className="sender">
-                    {this.props.sender.name}
+                    <UserName user={this.props.sender}/>
                 </div>
                 <div className="content">
                     {this.props.content}
@@ -152,7 +192,7 @@ class LobbyChatMessageBox extends React.Component {
         return (
             <div className="message-box">
                 <div className="sender">
-                    {this.props.sender.name}
+                    <UserName user={this.props.currentUser}/>
                 </div>
                 <div className="input">
                     <TextInput disabled={this.props.disabled} placeholder="Send messages here!" /*onChange={}*//>
@@ -188,6 +228,15 @@ class TextInput extends React.Component {
 
 class ConnectedUsersList extends React.Component {
     render() {
+        let users = [];
+        for(let i = 0; i < this.props.users.length; i++) {
+            let user = this.props.users[i];
+            let node = (
+                <li key={user.guid}>
+                    <UserName user={user}/>
+                </li>);
+            users.push(node);
+        }
         return (
             <div className="box connected-users-box">
                 <div className="upper-box">
@@ -195,22 +244,94 @@ class ConnectedUsersList extends React.Component {
                 </div>
                 <div className="lower-box">
                     <ul>
-                        <li>Steffo</li>
-                        <li>ciaociao</li>
-                        <li>Banana</li>
-                        <li>PotatOS</li>
-                        <li>Tua mamma</li>
-                        <li>Il mifioso</li>
-                        <li>That guy</li>
+                        {users}
                     </ul>
                 </div>
             </div>
         )
     }
+
+    refresh = function() {
+        ws.send(JSON.stringify({
+            "command": "lobby.get_users_list"
+        }))
+    };
+
+    componentDidMount() {
+        this.refresh();
+        this.refresher = setInterval(this.refresh, 2000)
+    }
+
+    componentWillUnmount() {
+        clearInterval(this.refresher)
+    }
 }
 
+class UserName extends React.Component {
+    render() {
+        return <span>{this.props.user.name}</span>;
+    }
+}
 
-ReactDOM.render(
-    <Client mode="Lobby"/>,
-    document.getElementById("react-app")
-);
+let game_data = {
+    mode: "Lobby",
+    current_user: {
+        name: undefined,
+        guid: undefined
+    },
+    lobby: {
+        games: [],
+        events: [],
+        users: [],
+    }
+};
+
+function updateUI() {
+    ReactDOM.render(<Client data={game_data}/>, document.getElementById("react-app"));
+}
+
+function getSelf() {
+    ws.send(JSON.stringify({
+        "command": "lobby.get_self"
+    }))
+}
+
+console.log("Trying to connect to ws://lo.steffo.eu:1234...");
+const ws = new WebSocket("ws://lo.steffo.eu:1234");
+ws.onopen = function() {
+    getSelf();
+};
+ws.onmessage = function(message) {
+    let data = JSON.parse(message.data);
+    if(data.success === false)
+    {
+        console.error(`Error in request ${data.request}.`);
+        return;
+    }
+    if(data.request === "lobby.get_self")
+    {
+        game_data.current_user = data.data;
+    }
+    else if(data.request === "lobby.get_games_list")
+    {
+        game_data.lobby.games = data.data;
+    }
+    else if(data.request === "lobby.get_unread_messages")
+    {
+        for(let i = 0; i < data.data.length; i++)
+        {
+            let event = data.data[i];
+            game_data.lobby.events.push(event);
+        }
+    }
+    else if(data.request === "lobby.get_users_list")
+    {
+        game_data.lobby.users = data.data;
+    }
+    updateUI();
+};
+ws.onclose = function() {
+    ReactDOM.render(
+    <div>Server connection lost :(</div>,
+    document.getElementById("react-app"));
+};

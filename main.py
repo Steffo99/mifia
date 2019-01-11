@@ -2,14 +2,21 @@ import twisted.internet
 import autobahn.twisted.websocket
 import json
 from game.lobby import Lobby, User
-from game.chat import UserSentMessageEvent, UserRenamedEvent
+from game.chat import UserSentMessageEvent
+import uuid
 
 lobby = Lobby("Unica")
 
 
+def jbytify(data) -> bytes:
+    string = json.dumps(data)
+    byte = bytes(string, encoding="utf8")
+    return byte
+
+
 class MifiaProtocol(autobahn.twisted.websocket.WebSocketServerProtocol):
     def onOpen(self):
-        user = User(self.peer)
+        user = User(peer=self.peer)
         lobby.user_join(user)
 
     def onConnect(self, request):
@@ -18,18 +25,27 @@ class MifiaProtocol(autobahn.twisted.websocket.WebSocketServerProtocol):
     def onMessage(self, payload: bytes, is_binary):
         # ARCH: use moar classes
         j = json.loads(payload)
-        if j["command"] == "poll":
-            user = lobby.find_user(peer=self.peer)
-            data = user.answer_poll()
-            string = json.dumps(data)
-            byte = bytes(string, encoding="utf8")
-            self.sendMessage(byte, isBinary=False)
-        elif j["command"] == "send_message":
-            user = lobby.find_user(peer=self.peer)
+        user = lobby.find_user(peer=self.peer)
+        response = {
+            "request": j["command"],
+            "success": False
+        }
+        if j["command"] == "lobby.get_self":
+            response["success"] = True
+            response["data"] = user.j()
+        elif j["command"] == "lobby.get_unread_messages":
+            response["success"] = True
+            response["data"] = user.fetch_unsent_events()
+        elif j["command"] == "lobby.get_games_list":
+            response["success"] = True
+            response["data"] = user.lobby.j_games()
+        elif j["command"] == "lobby.get_users_list":
+            response["success"] = True
+            response["data"] = user.lobby.j_users()
+        elif j["command"] == "lobby.send_chat_message":
+            response["success"] = True
             user.lobby.broadcast_chat_event(UserSentMessageEvent(user, j["content"]))
-        elif j["command"] == "change_name":
-            user = lobby.find_user(peer=self.peer)
-            user.lobby.broadcast_chat_event(UserRenamedEvent(user, j["new_name"]))
+        self.sendMessage(jbytify(response), isBinary=False)
 
     def onClose(self, was_clean, code, reason):
         user = lobby.find_user(peer=self.peer)
