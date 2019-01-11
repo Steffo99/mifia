@@ -9,11 +9,18 @@ input[type="password"] {
   background-color: rgba(255, 217, 217, 0.1);
   color: #ffd9d9;
   border: none;
-  border-bottom: 1px dashed #ffd9d9;
+  border-bottom: 1px solid #ffd9d9;
   padding: 2px;
   font-size: medium;
   font-family: "Verdana", sans-serif;
   width: 100%;
+}
+input[type="text"][disabled],
+input[type="password"][disabled] {
+  border-bottom-style: dashed;
+  border-bottom-color: rgba(255, 217, 217, 0.5);
+  background-color: rgba(255, 217, 217, 0.03);
+  color: rgba(255, 217, 217, 0.5);
 }
 button,
 input[type="submit"],
@@ -29,16 +36,26 @@ input[type="submit"],
   text-decoration: none;
   cursor: default;
   width: 100%;
+  height: 24px;
 }
-button:hover,
-input[type="submit"]:hover,
-.btn:hover {
+button[disabled],
+input[type="submit"][disabled],
+.btn[disabled],
+.game-listing-box .game-listing.in-progress .join button {
+  border-style: dashed;
+  border-color: rgba(255, 217, 217, 0.5);
+  background-color: rgba(255, 217, 217, 0.03);
+  color: rgba(255, 217, 217, 0.5);
+}
+button:not([disabled]):hover,
+input[type="submit"]:not([disabled]):hover,
+.btn:not([disabled]):hover {
   background-color: rgba(255, 217, 217, 0.3);
   border: 1px solid white;
 }
-button:active,
-input[type="submit"]:active,
-.btn:active {
+button:not([disabled]):active,
+input[type="submit"]:not([disabled]):active,
+.btn:not([disabled]):active {
   background-color: rgba(255, 217, 217, 0.5);
   color: white;
   border: 1px solid white;
@@ -77,10 +94,10 @@ input[type="submit"]:active,
 }
 .lobby-layout {
   display: grid;
-  grid-template-columns: 200px auto 200px;
+  grid-template-columns: 388px auto 196px;
   grid-template-rows: auto;
   grid-column-gap: 8px;
-  justify-items: stretch;
+  justify-content: stretch;
   align-items: stretch;
 }
 .lobby-layout .left {
@@ -95,20 +112,16 @@ input[type="submit"]:active,
   grid-row: 1;
   grid-column: 3;
 }
-.chat-layout {
-  display: flex;
-  flex-direction: column;
+.chat-box {
+  height: 100%;
 }
-.chat-layout .chat-box {
-  order: 1;
-}
-.chat-layout .chat-box .message {
+.chat-box .message {
   display: flex;
   flex-direction: row;
   margin-top: 2px;
   margin-bottom: 2px;
 }
-.chat-layout .chat-box .message .sender {
+.chat-box .message .sender {
   width: 112px;
   order: 1;
   text-align: right;
@@ -116,33 +129,66 @@ input[type="submit"]:active,
   color: white;
   font-weight: bold;
 }
-.chat-layout .chat-box .message .content {
+.chat-box .message .content {
   order: 2;
 }
-.chat-layout .chat-box .new-message {
+.chat-box .message-box {
   display: flex;
   flex-direction: row;
   margin-top: 8px;
   margin-bottom: 2px;
 }
-.chat-layout .chat-box .new-message .sender {
-  width: 112px;
+.chat-box .message-box .sender {
   order: 1;
+  width: 112px;
   text-align: right;
   margin-right: 16px;
   color: white;
   font-weight: bold;
 }
-.chat-layout .chat-box .new-message .input {
-  flex-grow: 1;
+.chat-box .message-box .input {
   order: 2;
+  flex-grow: 1;
 }
-.chat-layout .chat-box .new-message .send {
+.chat-box .message-box .send {
   order: 3;
   margin-left: 16px;
   width: 64px;
 }
-.chat-layout .send-box {
+.chat-box .send-box {
   order: 2;
+}
+.game-listing-box {
+  height: 100%;
+}
+.game-listing-box .game-listing {
+  display: flex;
+  flex-direction: row;
+  margin-top: 2px;
+  margin-bottom: 2px;
+}
+.game-listing-box .game-listing .name {
+  order: 1;
+  flex-grow: 1;
+}
+.game-listing-box .game-listing .status {
+  order: 2;
+  margin-left: 16px;
+  width: 112px;
+  color: white;
+  font-weight: bold;
+}
+.game-listing-box .game-listing .join {
+  order: 3;
+  margin-left: 16px;
+  width: 96px;
+}
+.game-listing-box .game-listing.joined .join button {
+  border-color: white;
+  color: white;
+  font-weight: bold;
+}
+.connected-users-box {
+  height: 100%;
 }
 /*# sourceMappingURL=main.css.map */

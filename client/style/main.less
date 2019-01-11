@@ -14,11 +14,18 @@ input[type="text"], input[type="password"] {
     background-color: fade(@fg, 10%);
     color: @fg;
     border: none;
-    border-bottom: 1px dashed @fg;
+    border-bottom: 1px solid @fg;
     padding: 2px;
     font-size: medium;
     font-family: @font;
     width: 100%;
+
+    &[disabled] {
+        border-bottom-style: dashed;
+        border-bottom-color: fade(@fg, 50%);
+        background-color: fade(@fg, 3%);
+        color: fade(@fg, 50%);
+    }
 }
 
 button, input[type="submit"], .btn {
@@ -33,16 +40,26 @@ button, input[type="submit"], .btn {
     text-decoration: none;
     cursor: default;
     width: 100%;
+    height: 24px;
 
-    &:hover {
-        background-color: fade(@fg, 30%);
-        border: 1px solid @eg;
+    &[disabled] {
+        border-style: dashed;
+        border-color: fade(@fg, 50%);
+        background-color: fade(@fg, 3%);
+        color: fade(@fg, 50%);
     }
 
-    &:active {
-        background-color: fade(@fg, 50%);
-        color: @eg;
-        border: 1px solid @eg;
+    &:not([disabled]) {
+        &:hover {
+            background-color: fade(@fg, 30%);
+            border: 1px solid @eg;
+        }
+
+        &:active {
+            background-color: fade(@fg, 50%);
+            color: @eg;
+            border: 1px solid @eg;
+        }
     }
 }
 
@@ -85,10 +102,10 @@ button, input[type="submit"], .btn {
 
 .lobby-layout {
     display: grid;
-    grid-template-columns: 200px auto 200px;
+    grid-template-columns: 388px auto 196px;
     grid-template-rows: auto;
     grid-column-gap: 8px;
-    justify-items: stretch;
+    justify-content: stretch;
     align-items: stretch;
 
     .left {
@@ -107,63 +124,106 @@ button, input[type="submit"], .btn {
     }
 }
 
-.chat-layout {
-    display: flex;
-    flex-direction: column;
+.chat-box {
+    height: 100%;
 
-    .chat-box {
-        order: 1;
+    .message {
+        display: flex;
+        flex-direction: row;
+        margin-top: 2px;
+        margin-bottom: 2px;
 
-        .message {
-            display: flex;
-            flex-direction: row;
-            margin-top: 2px;
-            margin-bottom: 2px;
-
-            .sender {
-                width: 112px;
-                order: 1;
-                text-align: right;
-                margin-right: 16px;
-                color: @eg;
-                font-weight: bold;
-            }
-
-            .content {
-                order: 2;
-            }
+        .sender {
+            width: 112px;
+            order: 1;
+            text-align: right;
+            margin-right: 16px;
+            color: @eg;
+            font-weight: bold;
         }
 
-        .new-message {
-            display: flex;
-            flex-direction: row;
-            margin-top: 8px;
-            margin-bottom: 2px;
+        .content {
+            order: 2;
+        }
+    }
 
-            .sender {
-                width: 112px;
-                order: 1;
-                text-align: right;
-                margin-right: 16px;
-                color: @eg;
-                font-weight: bold;
-            }
+    .message-box {
+        display: flex;
+        flex-direction: row;
+        margin-top: 8px;
+        margin-bottom: 2px;
 
-            .input {
-                flex-grow: 1;
-                order: 2;
-            }
-
-            .send {
-                order: 3;
-                margin-left: 16px;
-                width: 64px;
-            }
+        .sender {
+            order: 1;
+            width: 112px;
+            text-align: right;
+            margin-right: 16px;
+            color: @eg;
+            font-weight: bold;
         }
 
+        .input {
+            order: 2;
+            flex-grow: 1;
+        }
+
+        .send {
+            order: 3;
+            margin-left: 16px;
+            width: 64px;
+        }
     }
 
     .send-box {
         order: 2;
     }
+}
+
+
+.game-listing-box {
+    height: 100%;
+
+    .game-listing {
+        display: flex;
+        flex-direction: row;
+        margin-top: 2px;
+        margin-bottom: 2px;
+
+        .name {
+            order: 1;
+            flex-grow: 1;
+        }
+
+        .status {
+            order: 2;
+            margin-left: 16px;
+            width: 112px;
+            color: @eg;
+            font-weight: bold;
+        }
+
+        .join {
+            order: 3;
+            margin-left: 16px;
+            width: 96px;
+        }
+
+        &.joinable .join button {
+
+        }
+
+        &.in-progress .join button {
+            &:extend(button[disabled]);
+        }
+
+        &.joined .join button {
+            border-color: @eg;
+            color: @eg;
+            font-weight: bold;
+        }
+    }
+}
+
+.connected-users-box {
+    height: 100%;
 }
