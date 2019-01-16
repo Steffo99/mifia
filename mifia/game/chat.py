@@ -15,7 +15,8 @@ class ChatEvent:
     def j(self):
         return {
             "name": self.__class__.__name__,
-            "guid": self.guid
+            "guid": self.guid,
+            "timestamp": self.timestamp.timestamp()
         }
 
 
@@ -28,6 +29,7 @@ class UserChatEvent(ChatEvent):
         return {
             "name": self.__class__.__name__,
             "guid": self.guid,
+            "timestamp": self.timestamp.timestamp(),
             "user": self.user.j()
         }
 
@@ -49,6 +51,7 @@ class UserSentMessageEvent(UserChatEvent):
         return {
             "event_name": self.__class__.__name__,
             "guid": self.guid,
+            "timestamp": self.timestamp.timestamp(),
             "user": self.user.j(),
             "message": self.message
         }

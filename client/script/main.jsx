@@ -1,16 +1,102 @@
 class Client extends React.Component {
+    ws;
+
     constructor(props) {
         super(props);
         this.state = {
-            currentUser: {},
-            mode: "Lobby"
+            mode: "Lobby",
+            data: {
+                currentUser: {},
+                games: [],
+                users: []
+            }
+        };
+
+        this.ws = new WebSocket(prompt("Connect to?", "ws://lo.steffo.eu:1234"));
+
+        //Define custom websocket functions
+        {
+            this.ws.send_async_callbacks = {};
+            this.ws.send_async_count = 0;
+
+            this.ws.register_callback = (name, callback, caller) => {
+                if(caller !== undefined) {
+                    callback.bind(caller);
+                }
+                this.ws.send_async_callbacks[name] = callback;
+            };
+
+            this.ws.unregister_callback = (name) => {
+                this.ws.send_async_callbacks[name] = undefined;
+            };
+
+            this.ws.send_async = (data, callback) => {
+                this.ws.send_async_callbacks[String(this.ws.send_async_count)] = callback;
+                data["id"] = this.ws.send_async_count;
+                this.ws.send_async_count++;
+                this.ws.send(JSON.stringify(data));
+            };
+
+            this.ws.call_client_command = (command, data, callback) => {
+                this.ws.send_async({
+                    "command": command,
+                    "data": data
+                }, callback)
+            };
+        }
+
+        //Define standard websocket functions
+        {
+            this.ws.onopen = () => {
+            };
+
+            this.ws.onmessage = (message) => {
+                let data = JSON.parse(message.data);
+                if(data.success === false)
+                {
+                    console.error("Failure in the message:");
+                    console.error(data);
+                    return;
+                }
+                let id = String(data["id"]);
+                if(id === undefined) {
+                    console.error("No id supplied in the message:");
+                    console.error(data);
+                    return;
+                }
+                if(data.hasOwnProperty(id))
+                {
+                    console.log("Ignored message because of no id:");
+                    console.log(data);
+                    return;
+                }
+                let func = this.ws.send_async_callbacks[id];
+                if(func === undefined)
+                {
+                    console.log("Ignored message because of no associated callback:");
+                    console.log(data);
+                    return;
+                }
+                func(data);
+                //FIXME: memory leak
+                //delete this.ws.send_async_callbacks[id];
+            };
+
+            this.ws.onclose = () => {
+            };
         }
     }
 
     render() {
         if(this.state.mode === "Lobby") {
-            return <Lobby currentUser={this.state.currentUser}/>
+            return <Lobby clientData={this.state.data}
+                          ws={this.ws}/>
         }
+        return <div>Nothing to render.</div>
+    }
+
+    componentWillUnmount() {
+        this.ws.close(1001, "Client component is unmounting");
     }
 }
 
@@ -18,40 +104,41 @@ class Lobby extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            games: [],
-            chatEvents: [],
-            users: []
-        };
+            chatEvents: []
+        }
     }
 
     render() {
         return (
             <div className="lobby-layout">
                 <div className="left">
-                    <CurrentGames games={this.state.games}/>
+                    <CurrentGames games={this.props.clientData.games}/>
                 </div>
                 <div className="center">
                     <LobbyChat events={this.state.chatEvents}
-                               currentUser={this.props.currentUser}/>
+                               currentUser={this.props.clientData.currentUser}
+                               ws={this.props.ws}/>
                 </div>
                 <div className="right">
-                    <ConnectedUsersList users={this.state.users}/>
+                    <ConnectedUsersList users={this.props.clientData.users}/>
                 </div>
             </div>
         )
     }
 
     componentDidMount() {
-        ws.send_async_callbacks["lobby_chatevent"] = ((message) => {
-            this.setState((props, state) => {
-                if(state.chatEvents === undefined) return;
-                state.chatEvents.push(message)
-            })
+        this.props.ws.send_async_callbacks["lobby_chatevent"] = ((event) => {
+            this.setState(function(state, props) {
+                let chatEvents = state.chatEvents;
+                chatEvents.push(event.event);
+                return {chatEvents: chatEvents};
+            });
+            console.log(this.state);
         });
     }
 
     componentWillUnmount() {
-        delete ws.send_async_callbacks["lobby_chatevent"]
+        delete this.props.ws.send_async_callbacks["lobby_chatevent"]
     }
 }
 
@@ -145,9 +232,9 @@ class LobbyChat extends React.Component {
         for(let i = 0; i < this.props.events.length; i++) {
             let event = this.props.events[i];
             //TODO: add other events
-            if(event.event === "UserSentMessageEvent") {
+            if(event.event_name === "UserSentMessageEvent") {
                 let node = <LobbyChatMessage sender={event.user}
-                                             content={event.message}
+                                             message={event.message}
                                              timestamp={event.timestamp}
                                              key={event.guid}/>;
                 events.push(node);
@@ -162,7 +249,7 @@ class LobbyChat extends React.Component {
                     {events}
                 </div>
                 <div className="lower-box">
-                    <LobbyChatMessageBox currentUser={this.props.currentUser} disabled={false}/>
+                    <LobbyChatMessageBox currentUser={this.props.currentUser} disabled={false} ws={this.props.ws}/>
                 </div>
             </div>
         )
@@ -177,7 +264,7 @@ class LobbyChatMessage extends React.Component {
                     <UserName user={this.props.sender}/>
                 </div>
                 <div className="content">
-                    {this.props.content}
+                    {this.props.message}
                 </div>
             </div>
         )
@@ -233,7 +320,7 @@ class LobbyChatMessageBox extends React.Component {
     };
 
     sendMessage = (e) => {
-        ws.call_client_command("lobby.sendmsg", {
+        this.props.ws.call_client_command("lobby.sendmsg", {
             "text": this.state.currentMessage
         }, () => {});
         this.setState({currentMessage: ""});
@@ -279,10 +366,12 @@ class ConnectedUsersList extends React.Component {
                 <div className="upper-box">
                     Connected
                 </div>
-                <div className="lower-box">
+                <div className="middle-box">
                     <ul>
                         {users}
                     </ul>
+                </div>
+                <div className="lower-box">
                 </div>
             </div>
         )
@@ -295,61 +384,4 @@ class UserName extends React.Component {
     }
 }
 
-function updateUI() {
-    ReactDOM.render(<Client/>, document.getElementById("react-app"));
-}
-
-console.log("Trying to connect to ws://lo.steffo.eu:1234...");
-let ws = new WebSocket("ws://lo.steffo.eu:1234");
-ws.send_async = function(data, callback) {
-    ws.send_async_callbacks[ws.send_async_count] = callback;
-    data["id"] = ws.send_async_count;
-    ws.send_async_count++;
-    ws.send(JSON.stringify(data));
-};
-ws.call_client_command = function(command, data, callback) {
-    ws.send_async({
-        "command": command,
-        "data": data
-    }, callback)
-};
-ws.onopen = function() {
-    ws.send_async_callbacks = {};
-    ws.send_async_count = 0;
-    updateUI();
-};
-ws.onmessage = function(message) {
-    let data = JSON.parse(message.data);
-    if(data.success === false)
-    {
-        console.error("Failure in the message:");
-        console.error(data);
-        return;
-    }
-    let id = data["id"];
-    if(id === undefined) {
-        console.error("No id supplied in the message:");
-        console.error(data);
-        return;
-    }
-    if(data.hasOwnProperty(id))
-    {
-        console.log("Ignored message because of no id:");
-        console.log(data);
-        return;
-    }
-    let func = ws.send_async_callbacks[id];
-    if(func === undefined)
-    {
-        console.log("Ignored message because of no associated callback:");
-        console.log(data);
-        return;
-    }
-    func(message);
-    delete ws.send_async_callbacks[id];
-};
-ws.onclose = function() {
-    ReactDOM.render(
-    <div>Server connection lost :(</div>,
-    document.getElementById("react-app"));
-};
+ReactDOM.render(<Client/>, document.getElementById("react-app"));
