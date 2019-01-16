@@ -1,30 +1,57 @@
 class Client extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            currentUser: {},
+            mode: "Lobby"
+        }
+    }
+
     render() {
-        if(this.props.data.mode === "Lobby") {
-            return <Lobby games={this.props.data.lobby.games}
-                          events={this.props.data.lobby.events}
-                          users={this.props.data.lobby.users}
-                          currentUser={this.props.data.current_user}/>
+        if(this.state.mode === "Lobby") {
+            return <Lobby currentUser={this.state.currentUser}/>
         }
     }
 }
 
 class Lobby extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            games: [],
+            chatEvents: [],
+            users: []
+        };
+    }
+
     render() {
         return (
             <div className="lobby-layout">
                 <div className="left">
-                    <CurrentGames games={this.props.games}/>
+                    <CurrentGames games={this.state.games}/>
                 </div>
                 <div className="center">
-                    <LobbyChat events={this.props.events}
+                    <LobbyChat events={this.state.chatEvents}
                                currentUser={this.props.currentUser}/>
                 </div>
                 <div className="right">
-                    <ConnectedUsersList users={this.props.users}/>
+                    <ConnectedUsersList users={this.state.users}/>
                 </div>
             </div>
         )
+    }
+
+    componentDidMount() {
+        ws.send_async_callbacks["lobby_chatevent"] = ((message) => {
+            this.setState((props, state) => {
+                if(state.chatEvents === undefined) return;
+                state.chatEvents.push(message)
+            })
+        });
+    }
+
+    componentWillUnmount() {
+        delete ws.send_async_callbacks["lobby_chatevent"]
     }
 }
 
@@ -52,25 +79,10 @@ class CurrentGames extends React.Component {
                     {game_listings}
                 </div>
                 <div className="lower-box">
-                    <Button disabled={false} label="Create game" /*onClick={}*//>
+                    <Button disabled={true} label="Create game" /*onClick={}*//>
                 </div>
             </div>
         )
-    }
-
-    refresh = function() {
-        ws.send(JSON.stringify({
-            "command": "lobby.get_games_list"
-        }))
-    }
-
-    componentDidMount() {
-        this.refresh();
-        this.refresher = setInterval(this.refresh, 2000)
-    }
-
-    componentWillUnmount() {
-        clearInterval(this.refresher)
     }
 }
 
@@ -155,21 +167,6 @@ class LobbyChat extends React.Component {
             </div>
         )
     }
-
-    refresh = function() {
-        ws.send(JSON.stringify({
-            "command": "lobby.get_unread_messages"
-        }))
-    };
-
-    componentDidMount() {
-        this.refresh();
-        this.refresher = setInterval(this.refresh, 2000)
-    }
-
-    componentWillUnmount() {
-        clearInterval(this.refresher)
-    }
 }
 
 class LobbyChatMessage extends React.Component {
@@ -188,21 +185,59 @@ class LobbyChatMessage extends React.Component {
 }
 
 class LobbyChatMessageBox extends React.Component {
-    render() {
-        return (
-            <div className="message-box">
-                <div className="sender">
-                    <UserName user={this.props.currentUser}/>
-                </div>
-                <div className="input">
-                    <TextInput disabled={this.props.disabled} placeholder="Send messages here!" /*onChange={}*//>
-                </div>
-                <div className="send">
-                    <Button disabled={this.props.disabled} label="Send"/>
-                </div>
-            </div>
-        )
+    constructor(props) {
+        super(props);
+        this.state = {
+            "currentMessage": ""
+        }
     }
+
+    render() {
+        if(this.props.disabled) {
+            return (
+                <div className="message-box">
+                    <div className="sender">
+                        <UserName user={this.props.currentUser}/>
+                    </div>
+                    <div className="input">
+                        <TextInput disabled={true} placeholder="Chat disabled"/>
+                    </div>
+                    <div className="send">
+                        <Button disabled={true} label="Send"/>
+                    </div>
+                </div>
+            )
+        }
+        else {
+            return (
+                <div className="message-box">
+                    <div className="sender">
+                        <UserName user={this.props.currentUser}/>
+                    </div>
+                    <div className="input">
+                        <TextInput disabled={false}
+                                   placeholder="Send messages here!"
+                                   onChange={this.onTextInput}
+                                   value={this.state.currentMessage}/>
+                    </div>
+                    <div className="send">
+                        <Button disabled={false} label="Send" onClick={this.sendMessage}/>
+                    </div>
+                </div>
+            )
+        }
+    }
+
+    onTextInput = (e) => {
+        this.setState({currentMessage: e.target.value});
+    };
+
+    sendMessage = (e) => {
+        ws.call_client_command("lobby.sendmsg", {
+            "text": this.state.currentMessage
+        }, () => {});
+        this.setState({currentMessage: ""});
+    };
 }
 
 class TextInput extends React.Component {
@@ -220,6 +255,8 @@ class TextInput extends React.Component {
                  <input type="text"
                         placeholder={this.props.placeholder}
                         onChange={this.props.onChange}
+                        onKeyPress={this.props.onKeyPress}
+                        value={this.props.value}
                  />
             )
         }
@@ -250,21 +287,6 @@ class ConnectedUsersList extends React.Component {
             </div>
         )
     }
-
-    refresh = function() {
-        ws.send(JSON.stringify({
-            "command": "lobby.get_users_list"
-        }))
-    };
-
-    componentDidMount() {
-        this.refresh();
-        this.refresher = setInterval(this.refresh, 2000)
-    }
-
-    componentWillUnmount() {
-        clearInterval(this.refresher)
-    }
 }
 
 class UserName extends React.Component {
@@ -273,62 +295,58 @@ class UserName extends React.Component {
     }
 }
 
-let game_data = {
-    mode: "Lobby",
-    current_user: {
-        name: undefined,
-        guid: undefined
-    },
-    lobby: {
-        games: [],
-        events: [],
-        users: [],
-    }
-};
-
 function updateUI() {
-    ReactDOM.render(<Client data={game_data}/>, document.getElementById("react-app"));
-}
-
-function getSelf() {
-    ws.send(JSON.stringify({
-        "command": "lobby.get_self"
-    }))
+    ReactDOM.render(<Client/>, document.getElementById("react-app"));
 }
 
 console.log("Trying to connect to ws://lo.steffo.eu:1234...");
-const ws = new WebSocket("ws://lo.steffo.eu:1234");
+let ws = new WebSocket("ws://lo.steffo.eu:1234");
+ws.send_async = function(data, callback) {
+    ws.send_async_callbacks[ws.send_async_count] = callback;
+    data["id"] = ws.send_async_count;
+    ws.send_async_count++;
+    ws.send(JSON.stringify(data));
+};
+ws.call_client_command = function(command, data, callback) {
+    ws.send_async({
+        "command": command,
+        "data": data
+    }, callback)
+};
 ws.onopen = function() {
-    getSelf();
+    ws.send_async_callbacks = {};
+    ws.send_async_count = 0;
+    updateUI();
 };
 ws.onmessage = function(message) {
     let data = JSON.parse(message.data);
     if(data.success === false)
     {
-        console.error(`Error in request ${data.request}.`);
+        console.error("Failure in the message:");
+        console.error(data);
         return;
     }
-    if(data.request === "lobby.get_self")
-    {
-        game_data.current_user = data.data;
+    let id = data["id"];
+    if(id === undefined) {
+        console.error("No id supplied in the message:");
+        console.error(data);
+        return;
     }
-    else if(data.request === "lobby.get_games_list")
+    if(data.hasOwnProperty(id))
     {
-        game_data.lobby.games = data.data;
+        console.log("Ignored message because of no id:");
+        console.log(data);
+        return;
     }
-    else if(data.request === "lobby.get_unread_messages")
+    let func = ws.send_async_callbacks[id];
+    if(func === undefined)
     {
-        for(let i = 0; i < data.data.length; i++)
-        {
-            let event = data.data[i];
-            game_data.lobby.events.push(event);
-        }
+        console.log("Ignored message because of no associated callback:");
+        console.log(data);
+        return;
     }
-    else if(data.request === "lobby.get_users_list")
-    {
-        game_data.lobby.users = data.data;
-    }
-    updateUI();
+    func(message);
+    delete ws.send_async_callbacks[id];
 };
 ws.onclose = function() {
     ReactDOM.render(
