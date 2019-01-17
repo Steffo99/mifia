@@ -31,7 +31,7 @@ class Client extends React.Component {
             };
 
             this.ws.send_async = (data, callback) => {
-                this.ws.send_async_callbacks[String(this.ws.send_async_count)] = callback;
+                this.ws.register_callback(String(this.ws.send_async_count), callback, this);
                 data["id"] = this.ws.send_async_count;
                 this.ws.send_async_count++;
                 this.ws.send(JSON.stringify(data));
@@ -48,6 +48,16 @@ class Client extends React.Component {
         //Define standard websocket functions
         {
             this.ws.onopen = () => {
+                this.ws.call_client_command("lobby.info", {}, (data) => {
+                    console.log(data);
+                    this.setState({
+                        data: {
+                            currentUser: data.currentUser,
+                            games: data.games,
+                            users: data.users
+                        }
+                    });
+                });
             };
 
             this.ws.onmessage = (message) => {
@@ -231,12 +241,21 @@ class LobbyChat extends React.Component {
         let events = [];
         for(let i = 0; i < this.props.events.length; i++) {
             let event = this.props.events[i];
-            //TODO: add other events
             if(event.event_name === "UserSentMessageEvent") {
                 let node = <LobbyChatMessage sender={event.user}
                                              message={event.message}
                                              timestamp={event.timestamp}
                                              key={event.guid}/>;
+                events.push(node);
+            }
+            else if(event.event_name === "UserJoinedEvent") {
+                let node = <LobbyChatUserJoinedMessage user={event.user}
+                                                       key={event.guid}/>;
+                events.push(node);
+            }
+            else if(event.event_name === "UserLeftEvent") {
+                let node = <LobbyChatUserLeftMessage user={event.user}
+                                                     key={event.guid}/>;
                 events.push(node);
             }
         }
@@ -266,6 +285,26 @@ class LobbyChatMessage extends React.Component {
                 <div className="content">
                     {this.props.message}
                 </div>
+            </div>
+        )
+    }
+}
+
+class LobbyChatUserJoinedMessage extends React.Component {
+    render() {
+        return (
+            <div className="service-message user-joined">
+                <span>{this.props.user.name}</span> joined the lobby.
+            </div>
+        )
+    }
+}
+
+class LobbyChatUserLeftMessage extends React.Component {
+    render() {
+        return (
+            <div className="service-message left">
+                <span>{this.props.user.name}</span> left the lobby.
             </div>
         )
     }
@@ -320,9 +359,12 @@ class LobbyChatMessageBox extends React.Component {
     };
 
     sendMessage = (e) => {
+        if(this.state.currentMessage === "") return;
+
         this.props.ws.call_client_command("lobby.sendmsg", {
             "text": this.state.currentMessage
         }, () => {});
+
         this.setState({currentMessage: ""});
     };
 }
@@ -355,6 +397,7 @@ class ConnectedUsersList extends React.Component {
         let users = [];
         for(let i = 0; i < this.props.users.length; i++) {
             let user = this.props.users[i];
+            console.log(user);
             let node = (
                 <li key={user.guid}>
                     <UserName user={user}/>
@@ -380,7 +423,14 @@ class ConnectedUsersList extends React.Component {
 
 class UserName extends React.Component {
     render() {
-        return <span>{this.props.user.name}</span>;
+        let name;
+        if(this.props.user === undefined) {
+            name = "..."
+        }
+        else {
+            name = this.props.user.name;
+        }
+        return <span>{name}</span>;
     }
 }
 

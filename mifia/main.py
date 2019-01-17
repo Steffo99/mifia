@@ -110,6 +110,7 @@ class MifiaServer(autobahn.twisted.websocket.WebSocketServerFactory):
     def cmd_lobby_info(client, data):
         return {
             "success": True,
+            "currentUser": client.user.j(),
             "games": client.user.lobby.j_games(),
             "users": client.user.lobby.j_users()
         }
@@ -131,6 +132,6 @@ class MifiaServer(autobahn.twisted.websocket.WebSocketServerFactory):
 
 if __name__ == '__main__':
     print("Opening ws...")
-    factory = MifiaServer(u"ws://127.0.0.1:1234")
+    factory = MifiaServer(u"ws://0.0.0.0:1234")
     twisted.internet.reactor.listenTCP(1234, factory)
     twisted.internet.reactor.run()

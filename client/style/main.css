@@ -132,6 +132,14 @@ input[type="submit"]:not([disabled]):active,
 .chat-box .message .content {
   order: 2;
 }
+.chat-box .service-message {
+  display: block;
+  flex-direction: row;
+  margin-top: 2px;
+  margin-bottom: 2px;
+  font-size: x-small;
+  margin-left: 128px;
+}
 .chat-box .message-box {
   display: flex;
   flex-direction: row;
