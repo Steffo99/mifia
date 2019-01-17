@@ -26,12 +26,9 @@ class UserChatEvent(ChatEvent):
         self.user: User = user
 
     def j(self):
-        return {
-            "event_name": self.__class__.__name__,
-            "guid": self.guid,
-            "timestamp": self.timestamp.timestamp(),
-            "user": self.user.j()
-        }
+        j = super().j()
+        j["user"] = self.user.j()
+        return j
 
 
 class UserJoinedEvent(UserChatEvent):
@@ -48,10 +45,19 @@ class UserSentMessageEvent(UserChatEvent):
         self.message: str = message
 
     def j(self):
-        return {
-            "event_name": self.__class__.__name__,
-            "guid": self.guid,
-            "timestamp": self.timestamp.timestamp(),
-            "user": self.user.j(),
-            "message": self.message
-        }
+        j = super().j()
+        j["message"] = self.message
+        return j
+
+
+class UserChangedNameEvent(UserChatEvent):
+    def __init__(self, user, old_name):
+        super().__init__(user)
+        self.old_name = old_name
+        self.new_name = user.name
+
+    def j(self):
+        j = super().j()
+        j["old_name"] = self.old_name
+        j["new_name"] = self.new_name
+        return j

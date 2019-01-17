@@ -1,3 +1,5 @@
+'use strict';
+
 class Client extends React.Component {
     ws;
 
@@ -31,8 +33,8 @@ class Client extends React.Component {
             };
 
             this.ws.send_async = (data, callback) => {
-                this.ws.register_callback(String(this.ws.send_async_count), callback, this);
-                data["id"] = this.ws.send_async_count;
+                this.ws.register_callback(data["id"], callback, this);
+                data["id"] = String(this.ws.send_async_count);
                 this.ws.send_async_count++;
                 this.ws.send(JSON.stringify(data));
             };
@@ -49,7 +51,6 @@ class Client extends React.Component {
         {
             this.ws.onopen = () => {
                 this.ws.call_client_command("lobby.info", {}, (data) => {
-                    console.log(data);
                     this.setState({
                         data: {
                             currentUser: data.currentUser,
@@ -74,22 +75,16 @@ class Client extends React.Component {
                     console.error(data);
                     return;
                 }
-                if(data.hasOwnProperty(id))
-                {
-                    console.log("Ignored message because of no id:");
-                    console.log(data);
-                    return;
-                }
                 let func = this.ws.send_async_callbacks[id];
                 if(func === undefined)
                 {
-                    console.log("Ignored message because of no associated callback:");
-                    console.log(data);
                     return;
                 }
                 func(data);
-                //FIXME: memory leak
-                //delete this.ws.send_async_callbacks[id];
+                if(!isNaN(id))
+                {
+                    this.ws.unregister_callback(id);
+                }
             };
 
             this.ws.onclose = () => {
@@ -138,12 +133,11 @@ class Lobby extends React.Component {
 
     componentDidMount() {
         this.props.ws.send_async_callbacks["lobby_chatevent"] = ((event) => {
-            this.setState(function(state, props) {
+            this.setState(function(state) {
                 let chatEvents = state.chatEvents;
                 chatEvents.push(event.event);
                 return {chatEvents: chatEvents};
             });
-            console.log(this.state);
         });
     }
 
@@ -236,26 +230,36 @@ class Button extends React.Component {
 }
 
 class LobbyChat extends React.Component {
+    constructor(props) {
+        super(props);
+        this.lastMessageRef = React.createRef();
+    }
+
     render() {
         //Create lobbychatmessages from this.props.messages
         let events = [];
         for(let i = 0; i < this.props.events.length; i++) {
             let event = this.props.events[i];
+            let ref = undefined;
+            if(i + 1 === this.props.events.length) ref = this.lastMessageRef;
             if(event.event_name === "UserSentMessageEvent") {
                 let node = <LobbyChatMessage sender={event.user}
                                              message={event.message}
                                              timestamp={event.timestamp}
-                                             key={event.guid}/>;
+                                             key={event.guid}
+                                             superRef={ref}/>;
                 events.push(node);
             }
             else if(event.event_name === "UserJoinedEvent") {
                 let node = <LobbyChatUserJoinedMessage user={event.user}
-                                                       key={event.guid}/>;
+                                                       key={event.guid}
+                                                       superRef={ref}/>;
                 events.push(node);
             }
             else if(event.event_name === "UserLeftEvent") {
                 let node = <LobbyChatUserLeftMessage user={event.user}
-                                                     key={event.guid}/>;
+                                                     key={event.guid}
+                                                     superRef={ref}/>;
                 events.push(node);
             }
         }
@@ -273,12 +277,16 @@ class LobbyChat extends React.Component {
             </div>
         )
     }
+
+    componentDidUpdate() {
+        this.lastMessageRef.current.scrollIntoView();
+    }
 }
 
 class LobbyChatMessage extends React.Component {
     render() {
         return (
-            <div className="message">
+            <div ref={this.props.superRef} className="message">
                 <div className="sender">
                     <UserName user={this.props.sender}/>
                 </div>
@@ -293,7 +301,7 @@ class LobbyChatMessage extends React.Component {
 class LobbyChatUserJoinedMessage extends React.Component {
     render() {
         return (
-            <div className="service-message user-joined">
+            <div ref={this.props.superRef} className="service-message user-joined">
                 <span>{this.props.user.name}</span> joined the lobby.
             </div>
         )
@@ -303,7 +311,7 @@ class LobbyChatUserJoinedMessage extends React.Component {
 class LobbyChatUserLeftMessage extends React.Component {
     render() {
         return (
-            <div className="service-message left">
+            <div ref={this.props.superRef} className="service-message left">
                 <span>{this.props.user.name}</span> left the lobby.
             </div>
         )
@@ -344,6 +352,7 @@ class LobbyChatMessageBox extends React.Component {
                         <TextInput disabled={false}
                                    placeholder="Send messages here!"
                                    onChange={this.onTextInput}
+                                   onKeyPress={this.onKeyPress}
                                    value={this.state.currentMessage}/>
                     </div>
                     <div className="send">
@@ -356,6 +365,12 @@ class LobbyChatMessageBox extends React.Component {
 
     onTextInput = (e) => {
         this.setState({currentMessage: e.target.value});
+    };
+
+    onKeyPress = (e) => {
+        if(e.key === "Enter") {
+            this.sendMessage(e);
+        }
     };
 
     sendMessage = (e) => {
