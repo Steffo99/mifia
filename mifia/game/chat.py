@@ -1,7 +1,9 @@
 import uuid
-
-from .user import User
 import datetime
+import typing
+
+if typing.TYPE_CHECKING:
+    from .user import User
 
 
 class ChatEvent:
@@ -21,9 +23,9 @@ class ChatEvent:
 
 
 class UserChatEvent(ChatEvent):
-    def __init__(self, user: User):
+    def __init__(self, user: "User"):
         super().__init__()
-        self.user: User = user
+        self.user: "User" = user
 
     def j(self):
         j = super().j()
@@ -40,7 +42,7 @@ class UserLeftEvent(UserChatEvent):
 
 
 class UserSentMessageEvent(UserChatEvent):
-    def __init__(self, user: User, message: str):
+    def __init__(self, user: "User", message: str):
         super().__init__(user)
         self.message: str = message
 
@@ -50,11 +52,11 @@ class UserSentMessageEvent(UserChatEvent):
         return j
 
 
-class UserChangedNameEvent(UserChatEvent):
-    def __init__(self, user, old_name):
+class UserRenamedEvent(UserChatEvent):
+    def __init__(self, user: "User", new_name: str):
         super().__init__(user)
-        self.old_name = old_name
-        self.new_name = user.name
+        self.old_name: str = user.name
+        self.new_name: str = new_name
 
     def j(self):
         j = super().j()

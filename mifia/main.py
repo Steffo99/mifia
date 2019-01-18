@@ -10,7 +10,6 @@ logger = logging.getLogger(__name__)
 
 
 class ConnectedMifiaClient(autobahn.twisted.websocket.WebSocketServerProtocol):
-
     def __init__(self):
         super().__init__()
         self.user: typing.Optional[User] = None
@@ -48,7 +47,8 @@ class MifiaServer(autobahn.twisted.websocket.WebSocketServerFactory):
         self.main_lobby: Lobby = Lobby("lo Lobby")
         self.client_commands = {
             "lobby.info": self.cmd_lobby_info,
-            "lobby.sendmsg": self.cmd_lobby_sendmsg
+            "lobby.sendmsg": self.cmd_lobby_sendmsg,
+            "lobby.changename": self.cmd_lobby_changename
         }
 
     def client_connected(self, client):
@@ -58,6 +58,7 @@ class MifiaServer(autobahn.twisted.websocket.WebSocketServerFactory):
 
     @staticmethod
     def client_disconnected(client):
+        # FIXME: something causes an exc here
         user = client.user
         user.lobby.user_leave(user)
 
@@ -125,6 +126,25 @@ class MifiaServer(autobahn.twisted.websocket.WebSocketServerFactory):
                 "reason": "Missing message text"
             }
         client.user.lobby.user_lobby_message(client.user, text)
+        return {
+            "success": True
+        }
+
+    @staticmethod
+    def cmd_lobby_changename(client, data):
+        try:
+            new_name = data["new_name"]
+        except KeyError:
+            return {
+                "success": False,
+                "reason": "Missing new_name"
+            }
+        if new_name == "":
+            return {
+                "success": False,
+                "reason": "new_name can't be empty"
+            }
+        client.user.change_name(new_name)
         return {
             "success": True
         }

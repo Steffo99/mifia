@@ -107,11 +107,10 @@ button, input[type="submit"], .btn {
 .lobby-layout {
     display: grid;
     grid-template-columns: 388px auto 196px;
-    grid-template-rows: auto;
+    grid-template-rows: calc(100vh - 16px);
     grid-column-gap: 8px;
     justify-content: stretch;
     align-items: stretch;
-    grid-template-rows: calc(100vh - 16px);
 
     .left {
         grid-row: 1;
@@ -143,7 +142,6 @@ button, input[type="submit"], .btn {
             order: 1;
             text-align: right;
             margin-right: 16px;
-            color: @eg;
             font-weight: bold;
         }
 
@@ -167,24 +165,16 @@ button, input[type="submit"], .btn {
         margin-top: 8px;
         margin-bottom: 2px;
 
-        .sender {
+        .self-name {
             order: 1;
             width: 112px;
             text-align: right;
             margin-right: 16px;
-            color: @eg;
-            font-weight: bold;
         }
 
         .input {
             order: 2;
             flex-grow: 1;
-        }
-
-        .send {
-            order: 3;
-            margin-left: 16px;
-            width: 64px;
         }
     }
 
@@ -236,6 +226,10 @@ button, input[type="submit"], .btn {
             font-weight: bold;
         }
     }
+}
+
+.user {
+    color: @eg;
 }
 
 .connected-users-box {

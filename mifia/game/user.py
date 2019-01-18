@@ -2,6 +2,7 @@ import typing
 import uuid
 from mifia.utils.jsonhandling import jbytify
 import logging
+from .chat import UserRenamedEvent
 logger = logging.getLogger(__name__)
 
 if typing.TYPE_CHECKING:
@@ -32,3 +33,8 @@ class User:
             "id": "lobby_chatevent",
             "event": event.j()
         }))
+
+    def change_name(self, new_name):
+        logger.debug(f"{self} is changing name to {new_name}.")
+        self.lobby.broadcast_chatevent(UserRenamedEvent(self, new_name))
+        self.name = new_name

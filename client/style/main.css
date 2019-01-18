@@ -99,11 +99,10 @@ input[type="submit"]:not([disabled]):active,
 .lobby-layout {
   display: grid;
   grid-template-columns: 388px auto 196px;
-  grid-template-rows: auto;
+  grid-template-rows: calc(100vh - 16px);
   grid-column-gap: 8px;
   justify-content: stretch;
   align-items: stretch;
-  grid-template-rows: calc(100vh - 16px);
 }
 .lobby-layout .left {
   grid-row: 1;
@@ -131,7 +130,6 @@ input[type="submit"]:not([disabled]):active,
   order: 1;
   text-align: right;
   margin-right: 16px;
-  color: white;
   font-weight: bold;
 }
 .chat-box .message .content {
@@ -151,22 +149,15 @@ input[type="submit"]:not([disabled]):active,
   margin-top: 8px;
   margin-bottom: 2px;
 }
-.chat-box .message-box .sender {
+.chat-box .message-box .self-name {
   order: 1;
   width: 112px;
   text-align: right;
   margin-right: 16px;
-  color: white;
-  font-weight: bold;
 }
 .chat-box .message-box .input {
   order: 2;
   flex-grow: 1;
-}
-.chat-box .message-box .send {
-  order: 3;
-  margin-left: 16px;
-  width: 64px;
 }
 .chat-box .send-box {
   order: 2;
@@ -200,6 +191,9 @@ input[type="submit"]:not([disabled]):active,
   border-color: white;
   color: white;
   font-weight: bold;
+}
+.user {
+  color: white;
 }
 .connected-users-box {
   height: 100%;

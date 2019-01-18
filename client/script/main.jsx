@@ -8,7 +8,10 @@ class Client extends React.Component {
         this.state = {
             mode: "Lobby",
             data: {
-                currentUser: {},
+                currentUser: {
+                    "guid": null,
+                    "name": "_Guest"
+                },
                 games: [],
                 users: []
             }
@@ -33,8 +36,8 @@ class Client extends React.Component {
             };
 
             this.ws.send_async = (data, callback) => {
-                this.ws.register_callback(data["id"], callback, this);
                 data["id"] = String(this.ws.send_async_count);
+                this.ws.register_callback(data["id"], callback, this);
                 this.ws.send_async_count++;
                 this.ws.send(JSON.stringify(data));
             };
@@ -50,15 +53,8 @@ class Client extends React.Component {
         //Define standard websocket functions
         {
             this.ws.onopen = () => {
-                this.ws.call_client_command("lobby.info", {}, (data) => {
-                    this.setState({
-                        data: {
-                            currentUser: data.currentUser,
-                            games: data.games,
-                            users: data.users
-                        }
-                    });
-                });
+                this.getInfo();
+                setInterval(this.getInfo, 2000);
             };
 
             this.ws.onmessage = (message) => {
@@ -103,6 +99,18 @@ class Client extends React.Component {
     componentWillUnmount() {
         this.ws.close(1001, "Client component is unmounting");
     }
+
+    getInfo = () => {
+        this.ws.call_client_command("lobby.info", {}, (data) => {
+            this.setState({
+                data: {
+                    currentUser: data.currentUser,
+                    games: data.games,
+                    users: data.users
+                }
+            });
+        });
+    }
 }
 
 class Lobby extends React.Component {
@@ -142,7 +150,7 @@ class Lobby extends React.Component {
     }
 
     componentWillUnmount() {
-        delete this.props.ws.send_async_callbacks["lobby_chatevent"]
+        this.ws.unregister_callback("lobby_chatevent");
     }
 }
 
@@ -241,27 +249,37 @@ class LobbyChat extends React.Component {
         for(let i = 0; i < this.props.events.length; i++) {
             let event = this.props.events[i];
             let ref = undefined;
+            let node = undefined;
             if(i + 1 === this.props.events.length) ref = this.lastMessageRef;
             if(event.event_name === "UserSentMessageEvent") {
-                let node = <LobbyChatMessage sender={event.user}
+                node = <LobbyChatMessage sender={event.user}
                                              message={event.message}
                                              timestamp={event.timestamp}
                                              key={event.guid}
                                              superRef={ref}/>;
-                events.push(node);
             }
             else if(event.event_name === "UserJoinedEvent") {
-                let node = <LobbyChatUserJoinedMessage user={event.user}
-                                                       key={event.guid}
-                                                       superRef={ref}/>;
-                events.push(node);
+                node = <LobbyChatUserJoinedMessage user={event.user}
+                                                   key={event.guid}
+                                                   superRef={ref}/>;
             }
             else if(event.event_name === "UserLeftEvent") {
-                let node = <LobbyChatUserLeftMessage user={event.user}
-                                                     key={event.guid}
-                                                     superRef={ref}/>;
-                events.push(node);
+                node = <LobbyChatUserLeftMessage user={event.user}
+                                                 key={event.guid}
+                                                 superRef={ref}/>;
             }
+            else if(event.event_name === "UserRenamedEvent") {
+                node = <LobbyChatUserRenameMessage user={event.user}
+                                                   oldName={event.old_name}
+                                                   newName={event.new_name}
+                                                   key={event.guid}
+                                                   superRef={ref}/>;
+            }
+            else {
+                node = <LobbyChatUnsupportedMessage key={event.guid}
+                                                    superRef={ref}/>
+            }
+            events.push(node);
         }
         return (
             <div className="box chat-box">
@@ -302,7 +320,7 @@ class LobbyChatUserJoinedMessage extends React.Component {
     render() {
         return (
             <div ref={this.props.superRef} className="service-message user-joined">
-                <span>{this.props.user.name}</span> joined the lobby.
+                <UserName user={this.props.user}/> joined the lobby.
             </div>
         )
     }
@@ -311,18 +329,40 @@ class LobbyChatUserJoinedMessage extends React.Component {
 class LobbyChatUserLeftMessage extends React.Component {
     render() {
         return (
-            <div ref={this.props.superRef} className="service-message left">
-                <span>{this.props.user.name}</span> left the lobby.
+            <div ref={this.props.superRef} className="service-message user-left">
+                <UserName user={this.props.user}/> left the lobby.
             </div>
         )
     }
 }
 
+class LobbyChatUserRenameMessage extends React.Component {
+    render() {
+        return (
+            <div ref={this.props.superRef} className="service-message user-rename">
+                <UserName user={this.props.user} displayName={this.props.oldName}/> changed name to <UserName user={this.props.user} displayName={this.props.newName}/>.
+            </div>
+        )
+    }
+}
+
+class LobbyChatUnsupportedMessage extends React.Component {
+    render() {
+        return (
+            <div ref={this.props.superRef} className="service-message unsupported-message">
+                An unsupported message was received.
+            </div>
+        )
+    }
+}
+
+
 class LobbyChatMessageBox extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            "currentMessage": ""
+            "currentMessage": "",
+            "currentUsername": String(props.currentUser.name)
         }
     }
 
@@ -330,14 +370,11 @@ class LobbyChatMessageBox extends React.Component {
         if(this.props.disabled) {
             return (
                 <div className="message-box">
-                    <div className="sender">
-                        <UserName user={this.props.currentUser}/>
+                    <div className="self-name">
+                        <TextInput disabled={true} placeholdcer="Username" value={this.state.currentUsername}/>
                     </div>
                     <div className="input">
                         <TextInput disabled={true} placeholder="Chat disabled"/>
-                    </div>
-                    <div className="send">
-                        <Button disabled={true} label="Send"/>
                     </div>
                 </div>
             )
@@ -345,31 +382,42 @@ class LobbyChatMessageBox extends React.Component {
         else {
             return (
                 <div className="message-box">
-                    <div className="sender">
-                        <UserName user={this.props.currentUser}/>
+                    <div className="self-name">
+                        <TextInput disabled={false}
+                                   placeholder="Username"
+                                   onChange={this.onUsernameTextInput}
+                                   onKeyPress={this.onUsernameKeyPress}
+                                   value={this.state.currentUsername}/>
                     </div>
                     <div className="input">
                         <TextInput disabled={false}
                                    placeholder="Send messages here!"
-                                   onChange={this.onTextInput}
-                                   onKeyPress={this.onKeyPress}
+                                   onChange={this.onMessageTextInput}
+                                   onKeyPress={this.onMessageKeyPress}
                                    value={this.state.currentMessage}/>
-                    </div>
-                    <div className="send">
-                        <Button disabled={false} label="Send" onClick={this.sendMessage}/>
                     </div>
                 </div>
             )
         }
     }
 
-    onTextInput = (e) => {
+    onMessageTextInput = (e) => {
         this.setState({currentMessage: e.target.value});
     };
 
-    onKeyPress = (e) => {
+    onMessageKeyPress = (e) => {
         if(e.key === "Enter") {
             this.sendMessage(e);
+        }
+    };
+
+    onUsernameTextInput = (e) => {
+        this.setState({currentUsername: e.target.value});
+    };
+
+    onUsernameKeyPress = (e) => {
+        if(e.key === "Enter") {
+            this.changeUsername(e);
         }
     };
 
@@ -382,6 +430,15 @@ class LobbyChatMessageBox extends React.Component {
 
         this.setState({currentMessage: ""});
     };
+
+    changeUsername = (e) => {
+        if(this.state.currentUsername === "") return;
+        if(this.state.currentUsername === this.props.currentUser.name) return;
+
+        this.props.ws.call_client_command("lobby.changename", {
+            "new_name": this.state.currentUsername
+        }, () => {});
+    }
 }
 
 class TextInput extends React.Component {
@@ -391,6 +448,7 @@ class TextInput extends React.Component {
                  <input type="text"
                         placeholder={this.props.placeholder}
                         disabled={true}
+                        value={this.props.value}
                  />
             )
         }
@@ -412,7 +470,6 @@ class ConnectedUsersList extends React.Component {
         let users = [];
         for(let i = 0; i < this.props.users.length; i++) {
             let user = this.props.users[i];
-            console.log(user);
             let node = (
                 <li key={user.guid}>
                     <UserName user={user}/>
@@ -438,14 +495,19 @@ class ConnectedUsersList extends React.Component {
 
 class UserName extends React.Component {
     render() {
-        let name;
-        if(this.props.user === undefined) {
-            name = "..."
+        let displayName = "_Unknown";
+        if(this.props.displayName === undefined)
+        {
+            if(this.props.user !== undefined)
+            {
+                displayName = this.props.user.name;
+            }
         }
-        else {
-            name = this.props.user.name;
+        else
+        {
+            displayName = this.props.displayName;
         }
-        return <span>{name}</span>;
+        return <span className="user" title={this.props.user.guid}>{displayName}</span>;
     }
 }
 
