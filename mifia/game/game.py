@@ -15,9 +15,17 @@ class GameStates(enum.Enum):
     ENDED = "ENDED"
 
 
+class GamePhase(enum.Enum):
+    DAY_DISCUSSION = "DAY_DISCUSSION"
+    DAY_TRIAL = "DAY_TRIAL"
+    DUSK = "DUSK"
+    NIGHT = "NIGHT"
+    DAWN = "DAWN"
+
+
 class PlayersList(list):
-    def j(self) -> list:
-        return [player.j() for player in self]
+    def j_public(self) -> list:
+        return [player.j_public() for player in self]
 
     def user_join(self, user: "User") -> Player:
         pass
@@ -32,9 +40,18 @@ class MifiaGame:
         self.state = GameStates.WAITING_FOR_PLAYERS
         self.players = PlayersList()
 
-    def j_lobby(self):
+    def j_lobby(self) -> dict:
         return {
             "guid": self.guid,
             "state": self.state.value,
-            "players": self.players.j()
+            "players": self.players.j_public()
         }
+
+    def j_ingame(self) -> dict:
+        return {
+            "guid": self.guid,
+            "state": self.state.value,
+            "players": self.players.j_public(),
+
+        }
+

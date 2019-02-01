@@ -10,16 +10,10 @@ class Role:
     def __init__(self, player: Player):
         self.player: Player = player
 
-    def before_day(self):
+    def on_dusk(self):
         pass
 
-    def after_day(self):
-        pass
-
-    def before_night(self):
-        pass
-
-    def after_night(self):
+    def on_dawn(self):
         pass
 
     def before_death(self):
@@ -40,4 +34,4 @@ class MultipleTargetRole(Role):
 
     def __init__(self, player: Player):
         super().__init__(player)
-        self.targets: LimitedList = LimitedList()
+        self.targets: LimitedList = LimitedList(max_length=self.max_targets)

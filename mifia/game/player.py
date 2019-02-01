@@ -21,7 +21,7 @@ class Player:
         self.role: typing.Optional[Role] = None
         self.objective: typing.Optional[Objective] = None
 
-    def j_public(self):
+    def j_public(self) -> dict:
         return {
             "name": self.name,
             "death": self.death.j() if self.death is not None else None

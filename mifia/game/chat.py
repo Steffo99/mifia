@@ -14,7 +14,7 @@ class ChatEvent:
     def __repr__(self):
         return f"<{self.__class__.__name__} with timestamp {self.timestamp}>"
 
-    def j(self):
+    def j(self) -> dict:
         return {
             "event_name": self.__class__.__name__,
             "guid": self.guid,
@@ -27,10 +27,11 @@ class UserChatEvent(ChatEvent):
         super().__init__()
         self.user: "User" = user
 
-    def j(self):
-        j = super().j()
-        j["user"] = self.user.j()
-        return j
+    def j(self) -> dict:
+        return {
+            **super().j(),
+            "user": self.user.j()
+        }
 
 
 class UserJoinedEvent(UserChatEvent):
@@ -46,10 +47,11 @@ class UserSentMessageEvent(UserChatEvent):
         super().__init__(user)
         self.message: str = message
 
-    def j(self):
-        j = super().j()
-        j["message"] = self.message
-        return j
+    def j(self) -> dict:
+        return {
+            **super().j(),
+            "message": self.message
+        }
 
 
 class UserRenamedEvent(UserChatEvent):
@@ -58,8 +60,9 @@ class UserRenamedEvent(UserChatEvent):
         self.old_name: str = user.name
         self.new_name: str = new_name
 
-    def j(self):
-        j = super().j()
-        j["old_name"] = self.old_name
-        j["new_name"] = self.new_name
-        return j
+    def j(self) -> dict:
+        return {
+            **super().j(),
+            "old_name": self.old_name,
+            "new_name": self.new_name
+        }
