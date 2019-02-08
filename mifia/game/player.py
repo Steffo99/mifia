@@ -6,7 +6,7 @@ if typing.TYPE_CHECKING:
     from .user import User
     from .roles import Role
     from .objectives import Objective
-    from .death import Death
+    from mifia.game.deaths.death import Death
 
 
 class Player:
@@ -26,3 +26,7 @@ class Player:
             "name": self.name,
             "death": self.death.j() if self.death is not None else None
         }
+
+    def kill(self, death):
+        self.role.on_death()
+        self.death = death

@@ -23,15 +23,24 @@ class GamePhase(enum.Enum):
     DAWN = "DAWN"
 
 
-class PlayersList(list):
-    def j_public(self) -> list:
-        return [player.j_public() for player in self]
+class PlayersList:
+    def __init__(self):
+        self.players: typing.List[Player] = []
 
     def user_join(self, user: "User") -> Player:
         pass
 
     def user_leave(self, user: "User") -> Player:
         pass
+
+    def players_by_priority(self) -> typing.List[Player]:
+        return sorted(self.players, key=lambda p: p.role.priority)
+
+    def players_by_name(self) -> typing.List[Player]:
+        return sorted(self.players, key=lambda p: p.name)
+
+    def j_public(self) -> list:
+        return [player.j_public() for player in self.players_by_name()]
 
 
 class MifiaGame:
@@ -52,6 +61,5 @@ class MifiaGame:
             "guid": self.guid,
             "state": self.state.value,
             "players": self.players.j_public(),
-
         }
 

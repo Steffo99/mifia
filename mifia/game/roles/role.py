@@ -6,9 +6,11 @@ if typing.TYPE_CHECKING:
 
 class Role:
     name: str = NotImplemented
+    default_priority: int = NotImplemented
 
-    def __init__(self, player: Player):
-        self.player: Player = player
+    def __init__(self, player: "Player"):
+        self.player: "Player" = player
+        self.priority: int = self.default_priority
 
     def on_dusk(self):
         pass
@@ -16,22 +18,19 @@ class Role:
     def on_dawn(self):
         pass
 
-    def before_death(self):
-        pass
-
-    def after_death(self):
+    def on_death(self):
         pass
 
 
 class SingleTargetRole(Role):
-    def __init__(self, player: Player):
+    def __init__(self, player: "Player"):
         super().__init__(player)
-        self.target: Player = None
+        self.target: "Player" = None
 
 
 class MultipleTargetRole(Role):
     max_targets = NotImplemented
 
-    def __init__(self, player: Player):
+    def __init__(self, player: "Player"):
         super().__init__(player)
         self.targets: LimitedList = LimitedList(max_length=self.max_targets)

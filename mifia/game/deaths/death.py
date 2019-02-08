@@ -4,5 +4,6 @@ class Death:
 
     def j(self) -> dict:
         return {
-            "death_reason": self.__class__.__name__
+            "death_reason": self.__class__.__name__,
+            "moment": self.moment
         }
