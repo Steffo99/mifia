@@ -1,21 +1,19 @@
-import typing
 import uuid
-
+from .errors import MultipleAssignmentError
+import typing
 if typing.TYPE_CHECKING:
-    from .game import MifiaGame
+    from .games import Game
     from .user import User
     from .roles import Role
     from .objectives import Objective
     from .deaths import Death
 
 
-class MultipleAssignmentError(Exception):
-    pass
 
 
 class Player:
-    def __init__(self, game: "MifiaGame", user: "User"):
-        self.game: "MifiaGame" = game
+    def __init__(self, game: "RoleGame", user: "User"):
+        self.game: "RoleGame" = game
         self.user: "User" = user
         self.guid: str = str(uuid.uuid4())
 

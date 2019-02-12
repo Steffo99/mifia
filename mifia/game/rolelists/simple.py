@@ -1,10 +1,10 @@
 import typing
 import math
-from .preset import Preset
+from .rolelist import RoleList
 from ..roles import Role, Villager, Mafioso
 
 
-class SimplePreset(Preset):
+class SimpleRoleList(RoleList):
     """A preset containing only Villagers and Mafiosi."""
 
     def validate_player_number(self, current: int):

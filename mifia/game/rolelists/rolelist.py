@@ -2,7 +2,7 @@ import typing
 from ..roles import Role
 
 
-class Preset:
+class RoleList:
     name: str = NotImplemented
 
     def __init__(self):

@@ -12,13 +12,22 @@ class Role:
         self.player: "Player" = player
         self.priority: int = self.default_priority
 
-    def on_dusk(self):
-        pass
-
     def on_dawn(self):
         pass
 
+    def on_day(self):
+        pass
+
+    def on_dusk(self):
+        pass
+
+    def on_night(self):
+        pass
+
     def on_death(self):
+        pass
+
+    def on_message(self):
         pass
 
 
