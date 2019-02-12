@@ -1,3 +1,4 @@
-from .game import Game, GamePhase, GameState
+from .game import Game
+from mifia.game.moment import GameState, GamePhase
 
-__all__ = ["Game", "GamePhase", "GameState"]
+__all__ = ["Game"]

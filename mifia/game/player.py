@@ -9,13 +9,12 @@ if typing.TYPE_CHECKING:
     from .deaths import Death
 
 
-
-
 class Player:
-    def __init__(self, game: "RoleGame", user: "User"):
-        self.game: "RoleGame" = game
+    def __init__(self, game: "Game", user: "User"):
+        self.game: "Game" = game
         self.user: "User" = user
         self.guid: str = str(uuid.uuid4())
+        self.connected: bool = True
 
         self.name: typing.Optional[str] = None
         self.death: typing.Optional["Death"] = None

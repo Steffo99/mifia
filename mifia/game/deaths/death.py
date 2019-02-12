@@ -1,9 +1,14 @@
+import typing
+if typing.TYPE_CHECKING:
+    from ..moment import Moment
+
+
 class Death:
-    def __init__(self, moment: ...):
-        self.moment: ... = moment
+    def __init__(self, moment: Moment):
+        self.moment: Moment = moment
 
     def j(self) -> dict:
         return {
             "death_reason": self.__class__.__name__,
-            "moment": self.moment
+            "moment": self.moment.j()
         }
