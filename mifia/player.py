@@ -1,5 +1,5 @@
 import uuid
-from .errors import MultipleAssignmentError
+from .error import MultipleAssignmentError
 import typing
 if typing.TYPE_CHECKING:
     from mifia.games import Game
@@ -19,12 +19,6 @@ class Player:
 
         self.role: typing.Optional["Role"] = None
         self.objective: typing.Optional["Objective"] = None
-
-    def j_public(self) -> dict:
-        return {
-            "name": self.name,
-            "death": self.death.j() if self.death is not None else None
-        }
 
     def kill(self, death):
         self.role.on_death()

@@ -13,19 +13,22 @@ class Role:
         self.priority: int = self.default_priority
 
     def on_dawn(self):
-        pass
+        """Triggered when dawn starts."""
 
     def on_day(self):
-        pass
+        """Triggered when day starts."""
 
     def on_dusk(self):
-        pass
+        """Triggered when dusk starts."""
 
     def on_night(self):
-        pass
+        """Triggered when night starts."""
 
     def on_death(self):
-        pass
+        """Triggered after the player dies."""
+
+    def on_event(self):
+        """Triggered when an event is recieved from the game."""
 
     def on_message(self):
         pass

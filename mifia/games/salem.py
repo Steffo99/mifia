@@ -3,6 +3,7 @@ import enum
 import typing
 from ..deaths import LynchedByTheTown
 if typing.TYPE_CHECKING:
+    from multiprocessing import Queue
     from ..player import Player
     from ..rolelists import RoleList
     from ..namelists import NameList
@@ -21,8 +22,8 @@ class Salem(Game):
 
      *Roles do not apply."""
 
-    def __init__(self, rolelist: "RoleList", namelist: "NameList"):
-        super().__init__(rolelist, namelist)
+    def __init__(self, rolelist: "RoleList", namelist: "NameList", outgoing_queue: "Queue"):
+        super().__init__(rolelist, namelist, outgoing_queue)
         self.votes: typing.Dict[Player, Player] = {}
         self.on_trial: typing.Optional[Player] = None
         self.judgements: typing.Dict[Player, Judgement] = {}

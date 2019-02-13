@@ -1,50 +1,30 @@
 import uuid
 import typing
-
+from multiprocessing import Queue
 from ..moment import GameState, GamePhase, Moment
-from ..player import Player
 from ..playerlist import PlayersList
-from ..errors import InvalidStateError, InvalidPlayerCountError
+from ..error import InvalidStateError, InvalidPlayerCountError
 from ..deaths import LeftTheGame
-
 if typing.TYPE_CHECKING:
-    from ..user import User
+    from ..command import Command
     from ..rolelists import RoleList
     from ..namelists import NameList
 
 
 class Game:
-    def __init__(self, rolelist: "RoleList", namelist: "NameList"):
-        self.guid = uuid.uuid4()
+    def __init__(self, rolelist: "RoleList", namelist: "NameList", outgoing_queue: Queue):
+        self.out_queue: Queue = outgoing_queue
         self.state: GameState = GameState.WAITING_FOR_PLAYERS
         self.moment: Moment = None
         self.players = PlayersList()
         self.rolelist: "RoleList" = rolelist
         self.namelist: "NameList" = namelist
 
-    def user_join(self, user: "User") -> Player:
-        player = Player(self, user)
-        self.players.list.append(player)
-        return player
+    def handle_incoming_command(self, command: Command):
+        pass  # TODO
 
-    def user_leave(self, user: "User"):
-        for player in self.players.by_name():
-            if player.user == user:
-                player.connected = False
-
-    def j_lobby(self) -> dict:
-        return {
-            "guid": self.guid,
-            "state": self.state.value,
-            "players_qty": len(self.players)
-        }
-
-    def j_ingame(self) -> dict:
-        return {
-            "guid": self.guid,
-            "state": self.state.value,
-            "players": self.players.j_public(),
-        }
+    def send_outgoing_event(self, event: ...):
+        pass  # TODO
 
     def start_game(self):
         if self.state != GameState.WAITING_FOR_PLAYERS:
