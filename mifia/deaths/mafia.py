@@ -1,8 +1,8 @@
 import typing
 from .death import Death
 if typing.TYPE_CHECKING:
-    from ..moment import Moment
-    from ..player import Player
+    from mifia import Moment
+    from mifia.player import Player
 
 
 class KilledByMafia(Death):

@@ -1,9 +1,9 @@
 from .death import Death
 import typing
 if typing.TYPE_CHECKING:
-    from ..player import Player
-    from ..games.salem import Judgement
-    from ..moment import Moment
+    from mifia.player import Player
+    from mifia.games import Judgement
+    from mifia import Moment
 
 
 class LynchedByTheTown(Death):

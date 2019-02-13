@@ -1,12 +1,11 @@
 import uuid
 import typing
 
-from mifia.game.moment import GameState, GamePhase
+from ..moment import GameState, GamePhase, Moment
 from ..player import Player
 from ..playerlist import PlayersList
 from ..errors import InvalidStateError, InvalidPlayerCountError
 from ..deaths import LeftTheGame
-from ..moment import Moment
 
 if typing.TYPE_CHECKING:
     from ..user import User

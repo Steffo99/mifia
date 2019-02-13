@@ -1,6 +1,6 @@
 import typing
 if typing.TYPE_CHECKING:
-    from ..moment import Moment
+    from mifia import Moment
 
 
 class Death:

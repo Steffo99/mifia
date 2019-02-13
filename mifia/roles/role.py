@@ -1,7 +1,7 @@
 import typing
-from ...utils.limitedlist import LimitedList
+from ..utils.limitedlist import LimitedList
 if typing.TYPE_CHECKING:
-    from ..player import Player
+    from mifia.player import Player
 
 
 class Role:

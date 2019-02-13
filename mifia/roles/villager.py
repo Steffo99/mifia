@@ -1,4 +1,3 @@
-import typing
 from .role import Role
 
 

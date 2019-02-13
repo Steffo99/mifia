@@ -2,17 +2,15 @@ import uuid
 from .errors import MultipleAssignmentError
 import typing
 if typing.TYPE_CHECKING:
-    from .games import Game
-    from .user import User
-    from .roles import Role
-    from .objectives import Objective
-    from .deaths import Death
+    from mifia.games import Game
+    from mifia.roles import Role
+    from mifia.objectives import Objective
+    from mifia.deaths import Death
 
 
 class Player:
-    def __init__(self, game: "Game", user: "User"):
+    def __init__(self, game: "Game"):
         self.game: "Game" = game
-        self.user: "User" = user
         self.guid: str = str(uuid.uuid4())
         self.connected: bool = True
 
