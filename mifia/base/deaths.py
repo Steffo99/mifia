@@ -1,6 +1,6 @@
 import typing
 if typing.TYPE_CHECKING:
-    from mifia import Moment
+    from .moment import Moment
 
 
 class Death:
@@ -12,3 +12,7 @@ class Death:
             "death_reason": self.__class__.__name__,
             "moment": self.moment.j()
         }
+
+
+class LeftTheGame(Death):
+    pass

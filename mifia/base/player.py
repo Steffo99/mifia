@@ -1,11 +1,11 @@
 import uuid
-from .error import MultipleAssignmentError
+from .errors import MultipleAssignmentError
 import typing
 if typing.TYPE_CHECKING:
-    from mifia.games import Game
-    from mifia.roles import Role
-    from mifia.objectives import Objective
-    from mifia.deaths import Death
+    from .game import Game
+    from .roles import Role
+    from .objectives import Objective
+    from .deaths import Death
 
 
 class Player:

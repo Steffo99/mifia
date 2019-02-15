@@ -3,7 +3,7 @@ import secrets
 from .player import Player
 
 
-class PlayersList:
+class PlayerList:
     def __init__(self):
         self.list: typing.List[Player] = []
 
@@ -22,9 +22,6 @@ class PlayersList:
             origin.remove(player)
         assert len(result) == len(self.list)
         return result
-
-    def j_public(self) -> list:
-        return [player.j_public() for player in self.by_name()]
 
     def __len__(self):
         return len(self.list)

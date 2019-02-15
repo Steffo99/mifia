@@ -1,5 +1,5 @@
-from .role import SingleTargetRole
-from ..deaths import KilledByMafia
+from mifia.base.roles import SingleTargetRole
+from mifia.base.deaths import KilledByMafia
 
 
 class Mafioso(SingleTargetRole):

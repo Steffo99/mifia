@@ -1,7 +1,7 @@
 import typing
 import math
-from .rolelist import RoleList
-from ..roles import Role, Villager, Mafioso
+from ...base import RoleList, Role
+from ..roles import Villager, Mafioso
 
 
 class SimpleRoleList(RoleList):

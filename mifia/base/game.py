@@ -1,14 +1,14 @@
-import uuid
 import typing
 from multiprocessing import Queue
-from ..moment import GameState, GamePhase, Moment
-from ..playerlist import PlayersList
-from ..error import InvalidStateError, InvalidPlayerCountError
-from ..deaths import LeftTheGame
+from .moment import GameState, GamePhase, Moment
+from .playerlist import PlayerList
+from .errors import InvalidStateError, InvalidPlayerCountError
+from .deaths import LeftTheGame
 if typing.TYPE_CHECKING:
-    from ..command import Command
-    from ..rolelists import RoleList
-    from ..namelists import NameList
+    from .command import Command
+    from .event import Event
+    from .rolelist import RoleList
+    from .namelists import NameList
 
 
 class Game:
@@ -16,14 +16,14 @@ class Game:
         self.out_queue: Queue = outgoing_queue
         self.state: GameState = GameState.WAITING_FOR_PLAYERS
         self.moment: Moment = None
-        self.players = PlayersList()
+        self.players = PlayerList()
         self.rolelist: "RoleList" = rolelist
         self.namelist: "NameList" = namelist
 
     def handle_incoming_command(self, command: Command):
         pass  # TODO
 
-    def send_outgoing_event(self, event: ...):
+    def send_outgoing_event(self, event: Event):
         pass  # TODO
 
     def start_game(self):
@@ -40,14 +40,14 @@ class Game:
     def advance_phase(self):
         if self.moment is None:
             raise InvalidStateError("Game is not GameState.IN_PROGRESS!")
+        elif self.moment.phase == GamePhase.DAWN:
+            self._end_dawn()
         elif self.moment.phase == GamePhase.DAY:
             self._end_day()
         elif self.moment.phase == GamePhase.DUSK:
             self._end_dusk()
         elif self.moment.phase == GamePhase.NIGHT:
             self._end_night()
-        elif self.moment.phase == GamePhase.DAWN:
-            self._end_dawn()
         else:
             raise InvalidStateError("Game is in an invalid phase!")
 
@@ -88,3 +88,4 @@ class Game:
         self.moment = Moment(GamePhase.DAWN, self.moment.cycle + 1)
         for player in self.players.by_priority():
             player.role.on_dawn()
+

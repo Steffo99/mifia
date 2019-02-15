@@ -1,12 +1,10 @@
-from .game import Game
+from ..base import Game
+from .deaths import LynchedByTheTown
 import enum
 import typing
-from ..deaths import LynchedByTheTown
 if typing.TYPE_CHECKING:
     from multiprocessing import Queue
-    from ..player import Player
-    from ..rolelists import RoleList
-    from ..namelists import NameList
+    from ..base import Player, RoleList, NameList
 
 
 class Judgement(enum.IntEnum):

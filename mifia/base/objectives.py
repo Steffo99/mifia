@@ -1,23 +1,23 @@
 import typing
 if typing.TYPE_CHECKING:
-    from ..player import Player
+    from .player import Player
 
 
 class Objective:
     def __init__(self, player):
-        self.player: Player = None
+        self.player: Player = player
 
-    def is_complete(self) -> bool:
+    def status(self) -> typing.Union[..., bool]:
         raise NotImplementedError()
 
 
 class AutoWin(Objective):
-    def is_complete(self) -> bool:
+    def status(self) -> typing.Union[..., bool]:
         return True
 
 
 class AutoLose(Objective):
-    def is_complete(self) -> bool:
+    def status(self) -> typing.Union[..., bool]:
         return False
 
 
@@ -26,10 +26,14 @@ class AndObjective(Objective):
         super().__init__(player)
         self.subobjectives: typing.List[Objective] = args
 
-    def is_complete(self):
+    def status(self):
         status = True
         for objective in self.subobjectives:
-            status = status and objective.is_complete()
+            objstatus = objective.status()
+            if objstatus is ...:
+                return ...
+            else:
+                status = status and objective.status()
         return status
 
 
@@ -38,8 +42,15 @@ class OrObjective(Objective):
         super().__init__(player)
         self.subobjectives: typing.List[Objective] = args
 
-    def is_complete(self):
-        status = False
+    def status(self):
+        undefined = False
         for objective in self.subobjectives:
-            status = status or objective.is_complete()
-        return status
+            objstatus = objective.status()
+            if objstatus is True:
+                return True
+            if objstatus is ...:
+                undefined = True
+        if undefined:
+            return ...
+        else:
+            return False

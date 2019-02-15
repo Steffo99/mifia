@@ -1,5 +1,4 @@
-from .games import Game, Salem
-from .command import Command
-from .event import Event
+from mifia.base.command import Command
+from mifia.base.event import Event
 
 __all__ = ["Game", "Salem", "Command", "Event"]

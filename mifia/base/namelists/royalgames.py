@@ -1,4 +1,4 @@
-from .namelist import NameList
+from mifia.base.namelists import NameList
 
 
 class RoyalGames(NameList):
