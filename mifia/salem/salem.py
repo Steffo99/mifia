@@ -85,3 +85,4 @@ class Salem(Game):
         self.moment = Moment(GamePhase.DAWN, self.moment.cycle + 1)
         for player in self.players.by_priority():
             player.role.on_dawn()
+        self.victory_check()
