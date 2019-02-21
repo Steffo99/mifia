@@ -1,7 +1,8 @@
 from ..base import Game
 from ..base.errors import InvalidStateError
 from .deaths import LynchedByTheTown, LeftTheGame
-from .moment import Moment, GamePhase
+from .moment import Moment
+from .gamephase import GamePhase
 from .judgement import Judgement
 import typing
 if typing.TYPE_CHECKING:
