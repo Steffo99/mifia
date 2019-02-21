@@ -4,7 +4,6 @@ if typing.TYPE_CHECKING:
     from .game import Game
     from .role import Role
     from .objectives import Objective
-    from mifia.salem.deaths.death import Death
 
 
 class Player:
@@ -13,14 +12,9 @@ class Player:
         self.connected: bool = True
 
         self.name: typing.Optional[str] = None
-        self.death: typing.Optional["Death"] = None
 
-        self.role: typing.Optional[typing.Type["Role"]] = None
+        self.role: typing.Optional["Role"] = None
         self.objective: typing.Optional["Objective"] = None
-
-    def kill(self, death):
-        self.role.on_death()
-        self.death = death
 
     def assign_role(self, role: "Role"):
         if role is not None:

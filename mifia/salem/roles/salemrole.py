@@ -1,10 +1,14 @@
 from ...base import Role
 import typing
 if typing.TYPE_CHECKING:
-    from ...base import Player
+    from ..player import SalemPlayer
 
 
 class SalemRole(Role):
+    def __init__(self, player: "SalemPlayer"):
+        super().__init__(player)
+        self.player: "SalemPlayer"
+
     def on_dawn(self):
         """Triggered when dawn starts."""
 
@@ -22,9 +26,9 @@ class SalemRole(Role):
 
 
 class SingleTarget(Role):
-    def __init__(self, player: "Player"):
+    def __init__(self, player: "SalemPlayer"):
         super().__init__(player)
-        self._target: typing.Optional["Player"] = None
+        self._target: typing.Optional["SalemPlayer"] = None
 
     @property
     def target(self):
