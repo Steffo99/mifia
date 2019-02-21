@@ -1,5 +1,4 @@
 import typing
-from ..utils.limitedlist import LimitedList
 if typing.TYPE_CHECKING:
     from .player import Player
 
@@ -27,22 +26,5 @@ class Role:
     def on_death(self):
         """Triggered after the player dies."""
 
-    def on_event(self):
+    def on_event(self, event):
         """Triggered when an event is recieved from the game."""
-
-    def on_message(self):
-        pass
-
-
-class SingleTargetRole(Role):
-    def __init__(self, player: "Player"):
-        super().__init__(player)
-        self.target: "Player" = None
-
-
-class MultipleTargetRole(Role):
-    max_targets = NotImplemented
-
-    def __init__(self, player: "Player"):
-        super().__init__(player)
-        self.targets: LimitedList = LimitedList(max_length=self.max_targets)

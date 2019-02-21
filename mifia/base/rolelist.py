@@ -1,5 +1,5 @@
 import typing
-from .roles import Role
+from .role import Role
 
 
 class RoleList:

@@ -1,23 +1,21 @@
-import uuid
 from .errors import MultipleAssignmentError
 import typing
 if typing.TYPE_CHECKING:
     from .game import Game
-    from .roles import Role
+    from .role import Role
     from .objectives import Objective
-    from .deaths import Death
+    from mifia.salem.deaths.death import Death
 
 
 class Player:
     def __init__(self, game: "Game"):
         self.game: "Game" = game
-        self.guid: str = str(uuid.uuid4())
         self.connected: bool = True
 
         self.name: typing.Optional[str] = None
         self.death: typing.Optional["Death"] = None
 
-        self.role: typing.Optional["Role"] = None
+        self.role: typing.Optional[typing.Type["Role"]] = None
         self.objective: typing.Optional["Objective"] = None
 
     def kill(self, death):

@@ -1,8 +1,8 @@
-from mifia.base.roles import SingleTargetRole
-from mifia.base.deaths import KilledByMafia
+from .salemrole import SalemRole, SingleTarget
+from ..deaths import KilledByMafia
 
 
-class Mafioso(SingleTargetRole):
+class Mafioso(SalemRole, SingleTarget):
     name: str = "Mafioso"
     default_priority: int = 1
 
