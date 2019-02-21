@@ -7,6 +7,12 @@ class PlayerList:
     def __init__(self):
         self.list: typing.List[Player] = []
 
+    def add(self, player: Player):
+        self.list.append(player)
+
+    def remove(self, player: Player):
+        self.list.remove(player)
+
     def by_priority(self) -> typing.List[Player]:
         return sorted(self.list, key=lambda p: p.role.priority)
 

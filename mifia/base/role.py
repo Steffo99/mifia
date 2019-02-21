@@ -1,6 +1,7 @@
 import typing
 if typing.TYPE_CHECKING:
     from .player import Player
+    from .events import Event
 
 
 class Role:
@@ -11,20 +12,6 @@ class Role:
         self.player: "Player" = player
         self.priority: int = self.default_priority
 
-    def on_dawn(self):
-        """Triggered when dawn starts."""
-
-    def on_day(self):
-        """Triggered when day starts."""
-
-    def on_dusk(self):
-        """Triggered when dusk starts."""
-
-    def on_night(self):
-        """Triggered when night starts."""
-
-    def on_death(self):
-        """Triggered after the player dies."""
-
-    def on_event(self, event):
+    def on_event(self, event) -> "Event":
         """Triggered when an event is recieved from the game."""
+        return event

@@ -1,6 +1,6 @@
 from .namelists import NameList
 from .command import Command
-from .event import Event
+from mifia.base.events.event import Event
 from .game import Game, GameState
 from .objectives import Objective, OrObjective, AndObjective, AutoLose, AutoWin
 from .player import Player
