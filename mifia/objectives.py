@@ -12,19 +12,28 @@ class Objective:
 
 
 class AutoWin(Objective):
+    """You always win the game."""
     def status(self) -> typing.Union[..., bool]:
         return True
 
 
 class AutoLose(Objective):
+    """You always lose the game."""
     def status(self) -> typing.Union[..., bool]:
         return False
 
 
+class NoObjective(Objective):
+    """You don't have an objective, therefore you can't win, but neither you can't lose."""
+    def status(self):
+        return None
+
+
 class AndObjective(Objective):
-    def __init__(self, player, *args: typing.List[Objective]):
+    """You win if ALL subobjectives are completed."""
+    def __init__(self, player, subobjectives: typing.List[Objective]):
         super().__init__(player)
-        self.subobjectives: typing.List[Objective] = args
+        self.subobjectives: typing.List[Objective] = subobjectives
 
     def status(self):
         status = True
@@ -38,9 +47,10 @@ class AndObjective(Objective):
 
 
 class OrObjective(Objective):
-    def __init__(self, player, *args: typing.List[Objective]):
+    """You win if at least ONE subobjective is completed."""
+    def __init__(self, player, subobjectives: typing.List[Objective]):
         super().__init__(player)
-        self.subobjectives: typing.List[Objective] = args
+        self.subobjectives: typing.List[Objective] = subobjectives
 
     def status(self):
         undefined = False
