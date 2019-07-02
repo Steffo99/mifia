@@ -1,5 +1,5 @@
 from ..base import Game
-from ..base.errors import InvalidStateError
+from mifia.errors import InvalidStateError
 from .deaths import LynchedByTheTown, LeftTheGame
 from .moment import Moment
 from .gamephase import GamePhase
