@@ -1,7 +1,7 @@
 from .playerlist import PlayerList
 from .errors import InvalidStateError, InvalidPlayerCountError
 from .gamestate import GameState
-from .events import Event, GameEndedEvent, PlayerJoined, PlayerLeft
+from mifia.events import Event, GameEndedEvent, PlayerJoined, PlayerLeft
 import typing
 if typing.TYPE_CHECKING:
     from .player import Player

@@ -1,7 +1,7 @@
 import typing
 if typing.TYPE_CHECKING:
     from .player import Player
-    from .events import Event
+    from mifia.events import Event
 
 
 class Role:
