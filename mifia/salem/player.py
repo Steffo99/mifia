@@ -1,4 +1,4 @@
-from ..base import Player
+from ..player import Player
 import typing
 if typing.TYPE_CHECKING:
     from .salem import Salem

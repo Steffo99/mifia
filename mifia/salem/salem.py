@@ -1,14 +1,15 @@
-from ..base import Game
-from mifia.errors import InvalidStateError
+from ..game import Game, _require_gamestate
+from ..gamestate import GameState
+from ..errors import InvalidStateError
 from .deaths import LynchedByTheTown, LeftTheGame
 from .moment import Moment
 from .gamephase import GamePhase
 from .judgement import Judgement
 import typing
 if typing.TYPE_CHECKING:
-    from multiprocessing import Queue
-    from ..base import RoleList, NameList
     from .player import SalemPlayer
+    from ..rolelist import RoleList
+    from ..namelists import NameList
 
 
 class Salem(Game):
@@ -19,8 +20,8 @@ class Salem(Game):
 
      *Roles do not apply."""
 
-    def __init__(self, rolelist: "RoleList", namelist: "NameList", outgoing_queue: "Queue"):
-        super().__init__(rolelist, namelist, outgoing_queue)
+    def __init__(self, rolelist: "RoleList", namelist: "NameList"):
+        super().__init__(rolelist, namelist)
         self.votes: typing.Dict[SalemPlayer, SalemPlayer] = {}
         self.on_trial: typing.Optional[SalemPlayer] = None
         self.judgements: typing.Dict[SalemPlayer, Judgement] = {}
@@ -44,9 +45,8 @@ class Salem(Game):
             score += self.judgements[player].value
         return score
 
+    @_require_gamestate(GameState.IN_PROGRESS)
     def end_dawn(self):
-        if self.moment is None:
-            raise InvalidStateError("Game is not GameState.IN_PROGRESS!")
         if self.moment.phase != GamePhase.DAWN:
             raise InvalidStateError("Game is not GamePhase.DAWN!")
         self.moment = Moment(GamePhase.DAY, self.moment.cycle)
@@ -55,9 +55,8 @@ class Salem(Game):
             if not player.connected:
                 player.kill(LeftTheGame(self.moment))
 
+    @_require_gamestate(GameState.IN_PROGRESS)
     def end_day(self):
-        if self.moment is None:
-            raise InvalidStateError("Game is not GameState.IN_PROGRESS!")
         if self.moment.phase != GamePhase.DAY:
             raise InvalidStateError("Game is not GamePhase.DAY!")
         self.moment = Moment(GamePhase.DUSK, self.moment.cycle)
@@ -65,9 +64,8 @@ class Salem(Game):
             player.role.on_dusk()
         self.on_trial = self.vote_order()[0]
 
+    @_require_gamestate(GameState.IN_PROGRESS)
     def end_dusk(self):
-        if self.moment is None:
-            raise InvalidStateError("Game is not GameState.IN_PROGRESS!")
         if self.moment.phase != GamePhase.DUSK:
             raise InvalidStateError("Game is not GamePhase.DUSK!")
         self.moment = Moment(GamePhase.NIGHT, self.moment.cycle)
@@ -77,12 +75,11 @@ class Salem(Game):
             self.on_trial.kill(LynchedByTheTown(self.moment, self.judgements))
         self.on_trial = None
 
+    @_require_gamestate(GameState.IN_PROGRESS)
     def end_night(self):
-        if self.moment is None:
-            raise InvalidStateError("Game is not GameState.IN_PROGRESS!")
         if self.moment.phase != GamePhase.NIGHT:
             raise InvalidStateError("Game is not GamePhase.NIGHT!")
         self.moment = Moment(GamePhase.DAWN, self.moment.cycle + 1)
         for player in self.players.by_priority():
             player.role.on_dawn()
-        self.victory_check()
+        self._victory_check()
