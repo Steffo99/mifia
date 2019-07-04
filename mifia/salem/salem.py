@@ -5,6 +5,7 @@ from .deaths import LynchedByTheTown, LeftTheGame
 from .moment import Moment
 from .gamephase import GamePhase
 from .judgement import Judgement
+from . import events
 import typing
 if typing.TYPE_CHECKING:
     from .player import SalemPlayer
@@ -49,7 +50,10 @@ class Salem(Game):
     def end_dawn(self):
         if self.moment.phase != GamePhase.DAWN:
             raise InvalidStateError("Game is not GamePhase.DAWN!")
-        self.moment = Moment(GamePhase.DAY, self.moment.cycle)
+        previous_moment, self.moment = self.moment, Moment(GamePhase.DAY, self.moment.cycle)
+        self._send_event(events.MomentChange(to=self.players.by_randomness(),
+                                             previous_moment=previous_moment,
+                                             new_moment=self.moment))
         for player in self.players.by_priority():
             player.role.on_day()
             if not player.connected:
@@ -59,27 +63,45 @@ class Salem(Game):
     def end_day(self):
         if self.moment.phase != GamePhase.DAY:
             raise InvalidStateError("Game is not GamePhase.DAY!")
-        self.moment = Moment(GamePhase.DUSK, self.moment.cycle)
+        previous_moment, self.moment = self.moment, Moment(GamePhase.DUSK, self.moment.cycle)
+        self._send_event(events.MomentChange(to=self.players.by_randomness(),
+                                             previous_moment=previous_moment,
+                                             new_moment=self.moment))
         for player in self.players.by_priority():
             player.role.on_dusk()
         self.on_trial = self.vote_order()[0]
+        self._send_event(events.TrialStart(to=self.players.by_randomness(),
+                                           on_trial=self.on_trial,
+                                           vote_counts=self.vote_count()))
 
     @_require_gamestate(GameState.IN_PROGRESS)
     def end_dusk(self):
         if self.moment.phase != GamePhase.DUSK:
             raise InvalidStateError("Game is not GamePhase.DUSK!")
-        self.moment = Moment(GamePhase.NIGHT, self.moment.cycle)
+        previous_moment, self.moment = self.moment, Moment(GamePhase.NIGHT, self.moment.cycle)
+        self._send_event(events.MomentChange(to=self.players.by_randomness(),
+                                             previous_moment=previous_moment,
+                                             new_moment=self.moment))
         for player in self.players.by_priority():
             player.role.on_night()
-        if self.judgements_count() < 0:
+        vote_score = self.judgements_count()
+        self._send_event(events.PassedJudgement(to=self.players.by_randomness(),
+                                                on_trial=self.on_trial,
+                                                judgements=self.judgements))
+        if vote_score < 0:
             self.on_trial.kill(LynchedByTheTown(self.moment, self.judgements))
+            self._send_event(events.Lynch(to=self.players.by_randomness(),
+                                          dead=self.on_trial))
         self.on_trial = None
 
     @_require_gamestate(GameState.IN_PROGRESS)
     def end_night(self):
         if self.moment.phase != GamePhase.NIGHT:
             raise InvalidStateError("Game is not GamePhase.NIGHT!")
-        self.moment = Moment(GamePhase.DAWN, self.moment.cycle + 1)
+        previous_moment, self.moment = self.moment, Moment(GamePhase.DAWN, self.moment.cycle + 1)
+        self._send_event(events.MomentChange(to=self.players.by_randomness(),
+                                             previous_moment=previous_moment,
+                                             new_moment=self.moment))
         for player in self.players.by_priority():
             player.role.on_dawn()
         self._victory_check()
