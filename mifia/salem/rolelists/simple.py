@@ -1,11 +1,13 @@
 import typing
 import math
-from ...base import RoleList, Role
-from ..roles import Villager, Mafioso
+from ...rolelist import RoleList
+if typing.TYPE_CHECKING:
+    from ..roles import SalemRole
+    from ..roles import Villager, Mafioso
 
 
 class SimpleRoleList(RoleList):
-    """A preset containing only Villagers and Mafiosi."""
+    """A sample simple preset containing only Villagers and Mafiosi."""
 
     def validate_player_number(self, current: int):
         """Requires 4*(n!)+n players."""
@@ -20,7 +22,7 @@ class SimpleRoleList(RoleList):
             else:
                 return False
 
-    def create_generator(self) -> typing.Generator[Role, None, None]:
+    def create_generator(self) -> typing.Generator["SalemRole", None, None]:
         """Yield 4*(n!) Villagers and n Mafiosi."""
         count = 1
         while True:

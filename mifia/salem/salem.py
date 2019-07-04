@@ -8,7 +8,7 @@ from .judgement import Judgement
 from . import events
 import typing
 if typing.TYPE_CHECKING:
-    from .player import SalemPlayer
+    from .salemplayer import SalemPlayer
     from ..rolelist import RoleList
     from ..namelists import NameList
 

@@ -1,4 +1,4 @@
-from mifia.role import Role
+from ...role import Role
 
 
 class Villager(Role):

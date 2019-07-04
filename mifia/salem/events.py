@@ -2,7 +2,7 @@ from ..events import Event
 import typing
 if typing.TYPE_CHECKING:
     from .moment import Moment
-    from .player import SalemPlayer
+    from .salemplayer import SalemPlayer
     from .roles.salemrole import SalemRole
     from .judgement import Judgement
 

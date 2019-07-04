@@ -1,7 +1,7 @@
 import typing
 from .death import Death
 if typing.TYPE_CHECKING:
-    from ...base import Player
+    from ..salemplayer import Player
     from ..moment import Moment
 
 

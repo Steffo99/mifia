@@ -8,7 +8,7 @@ if typing.TYPE_CHECKING:
 
 class Player:
     def __init__(self, game: "Game"):
-        self._game: "Game" = game
+        self.game: "Game" = game
         self.connected: bool = True
         self._name: typing.Optional[str] = None
         self._role: typing.Optional["Role"] = None

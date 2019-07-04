@@ -1,7 +1,7 @@
-from ...base import Role
+from ...role import Role
 import typing
 if typing.TYPE_CHECKING:
-    from ..player import SalemPlayer
+    from ..salemplayer import SalemPlayer
 
 
 class SalemRole(Role):

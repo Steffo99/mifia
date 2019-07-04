@@ -8,7 +8,7 @@ if typing.TYPE_CHECKING:
 class SalemPlayer(Player):
     def __init__(self, game: "Salem"):
         super().__init__(game)
-        self._game: "Salem"
+        self.game: "Salem"
         self.death: typing.Optional["Death"] = None
 
     def kill(self, death):
