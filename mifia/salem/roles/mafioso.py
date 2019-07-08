@@ -12,4 +12,4 @@ class Mafioso(SalemRole, SingleTarget):
             return
         if self.target is None:
             return
-        self.target.kill(KilledByMafia(self.player.game.moment, self.player))
+        self.target.die(KilledByMafia(self.player.game.moment, self.player))
