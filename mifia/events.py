@@ -23,8 +23,14 @@ class Event:
         else:
             self.to = [to]
 
+    def __repr__(self):
+        len_to = len(self.to)
+        if len_to == 1:
+            return f"<{self.__class__.__name__} -> {self.to[0].name}>"
+        return f"<{self.__class__.__name__} -> {len_to} players>"
 
-class GameStartedEvent(Event):
+
+class GameStarted(Event):
     """The game has advanced from the :py:const:`mifia.GameState.WAITING_FOR_PLAYERS` to the
     :py:const:`mifia.GameState.IN_PROGRESS`.
 
@@ -32,15 +38,23 @@ class GameStartedEvent(Event):
         to: A list of players that should be notified of this event."""
 
 
-class GameEndedEvent(Event):
+class GameEnded(Event):
     """The game has advanced from the :py:const:`mifia.GameState.IN_PROGRESS` to the
     :py:const:`mifia.GameState.ENDED`.
 
     Attributes:
-        to: A list of players that should be notified of this event."""
+        to: A list of players that should be notified of this event.
+        results: A dict that maps players to a value that is either :py:const:`None` (null result), :py:const:`True`
+         (win) or :py:const:`False` (loss)."""
+
+    def __init__(self,
+                 to: typing.Union[None, "Player", typing.List["Player"]],
+                 results: typing.Dict["Player", typing.Optional[bool]]):
+        super().__init__(to)
+        self.results: typing.Dict["Player", typing.Optional[bool]] = results
 
 
-class PlayerJoinedEvent(Event):
+class PlayerJoined(Event):
     """A new player has joined the game during the :py:const:`mifia.GameState.WAITING_FOR_PLAYERS`.
 
     Attributes:
@@ -52,7 +66,7 @@ class PlayerJoinedEvent(Event):
         self.joiner = joiner
 
 
-class PlayerLeftEvent(Event):
+class PlayerLeft(Event):
     """A player has left the game during the :py:const:`mifia.GameState.WAITING_FOR_PLAYERS`.
 
     Attributes:

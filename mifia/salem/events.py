@@ -61,3 +61,28 @@ class MomentChange(Event):
         super().__init__(to=to)
         self.previous_moment: typing.Optional["Moment"] = previous_moment
         self.new_moment: "Moment" = new_moment
+
+
+class ChatMessage(Event):
+    """Any chat message."""
+    def __init__(self,
+                 to: typing.Union[None, "SalemPlayer", typing.List["SalemPlayer"]],
+                 sender: "SalemPlayer",
+                 msg: str):
+        super().__init__(to=to)
+        self.sender: "SalemPlayer" = sender
+        self.msg: str = msg
+
+    def __str__(self):
+        return self.msg
+
+    def __repr__(self):
+        return f"<{self.__class__.__name__} -> {len(self.to)}: {self.msg}>"
+
+
+class TownChatMessage(ChatMessage):
+    """A message sent in the town (main) chat."""
+
+
+class MafiaChatMessage(ChatMessage):
+    """A message sent in the mafia (private) chat."""

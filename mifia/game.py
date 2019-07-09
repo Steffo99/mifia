@@ -2,7 +2,7 @@ from .requiregamestate import require_gamestate
 from .playerlist import PlayerList
 from .errors import InvalidPlayerCountError
 from .gamestate import GameState
-from .events import Event, GameStartedEvent, GameEndedEvent, PlayerJoinedEvent, PlayerLeftEvent
+from . import events
 import typing
 
 if typing.TYPE_CHECKING:
@@ -17,23 +17,26 @@ class Game:
     Instantiate one of these to create a new game lobby."""
     def __init__(self, rolelist: "RoleList", namelist: "NameList"):
         self.state: GameState = GameState.WAITING_FOR_PLAYERS
-        self.events: typing.List[Event] = []
+        self.events: typing.List[events.Event] = []
         self.players = PlayerList()
         self.rolelist: "RoleList" = rolelist
         self.namelist: "NameList" = namelist
 
-    def _send_event(self, event: Event):
+    def __repr__(self):
+        return f"<{self.__class__.__name__} {self.state}, with {len(self.players)} players>"
+
+    def send_event(self, event: events.Event):
         self.events.append(event)
 
     @require_gamestate(GameState.WAITING_FOR_PLAYERS)
     def player_join(self, joiner: "Player"):
         self.players.add(joiner)
-        self._send_event(PlayerJoinedEvent(to=self.players.by_randomness(), joiner=joiner))
+        self.send_event(events.PlayerJoined(to=self.players.by_randomness(), joiner=joiner))
 
     @require_gamestate(GameState.WAITING_FOR_PLAYERS)
     def player_leave(self, leaver: "Player"):
         self.players.remove(leaver)
-        self._send_event(PlayerLeftEvent(to=self.players.by_randomness(), leaver=leaver))
+        self.send_event(events.PlayerLeft(to=self.players.by_randomness(), leaver=leaver))
 
     @require_gamestate(GameState.WAITING_FOR_PLAYERS)
     def start_game(self):
@@ -43,11 +46,12 @@ class Game:
             player.role = next(self.rolelist.generator)
             player.name = next(self.namelist.generator)
         self.state = GameState.IN_PROGRESS
-        self._send_event(GameStartedEvent(to=self.players.by_randomness()))
+        self.send_event(events.GameStarted(to=self.players.by_randomness()))
 
-    def _victory_check(self):
-        for player in self.players.by_randomness():
-            if player.objective.status() is ...:
+    @require_gamestate(GameState.IN_PROGRESS)
+    def victory_check(self):
+        for player in self.players.by_priority():
+            if player.role.objective.status() is ...:
                 break
         else:
             self.end_game()
@@ -55,4 +59,7 @@ class Game:
     @require_gamestate(GameState.IN_PROGRESS)
     def end_game(self):
         self.state = GameState.ENDED
-        self._send_event(GameEndedEvent(to=self.players.by_randomness()))
+        results_dict = {}
+        for player in self.players.by_priority():
+            results_dict[player] = player.role.objective.status()
+        self.send_event(events.GameEnded(to=self.players.by_priority(), results=results_dict))

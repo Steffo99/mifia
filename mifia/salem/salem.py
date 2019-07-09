@@ -51,12 +51,23 @@ class Salem(Game):
         return score
 
     @require_gamestate(GameState.IN_PROGRESS)
+    def advance_phase(self):
+        if self.moment.phase == GamePhase.DAWN:
+            self.end_dawn()
+        elif self.moment.phase == GamePhase.DAY:
+            self.end_day()
+        elif self.moment.phase == GamePhase.DUSK:
+            self.end_dusk()
+        elif self.moment.phase == GamePhase.NIGHT:
+            self.end_night()
+
+    @require_gamestate(GameState.IN_PROGRESS)
     @require_gamephase(GamePhase.DAWN)
     def end_dawn(self):
         previous_moment, self.moment = self.moment, Moment(GamePhase.DAY, self.moment.cycle)
-        self._send_event(events.MomentChange(to=self.players.by_randomness(),
-                                             previous_moment=previous_moment,
-                                             new_moment=self.moment))
+        self.send_event(events.MomentChange(to=self.players.by_randomness(),
+                                            previous_moment=previous_moment,
+                                            new_moment=self.moment))
         for player in self.players.by_priority():
             player.role.on_day()
             if not player.connected:
@@ -66,42 +77,42 @@ class Salem(Game):
     @require_gamephase(GamePhase.DAY)
     def end_day(self):
         previous_moment, self.moment = self.moment, Moment(GamePhase.DUSK, self.moment.cycle)
-        self._send_event(events.MomentChange(to=self.players.by_randomness(),
-                                             previous_moment=previous_moment,
-                                             new_moment=self.moment))
+        self.send_event(events.MomentChange(to=self.players.by_randomness(),
+                                            previous_moment=previous_moment,
+                                            new_moment=self.moment))
         for player in self.players.by_priority():
             player.role.on_dusk()
         self.on_trial = self.vote_order()[0]
-        self._send_event(events.TrialStart(to=self.players.by_randomness(),
-                                           on_trial=self.on_trial,
-                                           vote_counts=self.vote_count()))
+        self.send_event(events.TrialStart(to=self.players.by_randomness(),
+                                          on_trial=self.on_trial,
+                                          vote_counts=self.vote_count()))
 
     @require_gamestate(GameState.IN_PROGRESS)
     @require_gamephase(GamePhase.DUSK)
     def end_dusk(self):
         previous_moment, self.moment = self.moment, Moment(GamePhase.NIGHT, self.moment.cycle)
-        self._send_event(events.MomentChange(to=self.players.by_randomness(),
-                                             previous_moment=previous_moment,
-                                             new_moment=self.moment))
+        self.send_event(events.MomentChange(to=self.players.by_randomness(),
+                                            previous_moment=previous_moment,
+                                            new_moment=self.moment))
         for player in self.players.by_priority():
             player.role.on_night()
         vote_score = self.judgements_count()
-        self._send_event(events.PassedJudgement(to=self.players.by_randomness(),
-                                                on_trial=self.on_trial,
-                                                judgements=self.judgements))
+        self.send_event(events.PassedJudgement(to=self.players.by_randomness(),
+                                               on_trial=self.on_trial,
+                                               judgements=self.judgements))
         if vote_score < 0:
             self.on_trial.die(LynchedByTheTown(self.moment, self.judgements))
-            self._send_event(events.Lynch(to=self.players.by_randomness(),
-                                          dead=self.on_trial))
+            self.send_event(events.Lynch(to=self.players.by_randomness(),
+                                         dead=self.on_trial))
         self.on_trial = None
 
     @require_gamestate(GameState.IN_PROGRESS)
     @require_gamephase(GamePhase.NIGHT)
     def end_night(self):
         previous_moment, self.moment = self.moment, Moment(GamePhase.DAWN, self.moment.cycle + 1)
-        self._send_event(events.MomentChange(to=self.players.by_randomness(),
-                                             previous_moment=previous_moment,
-                                             new_moment=self.moment))
+        self.send_event(events.MomentChange(to=self.players.by_randomness(),
+                                            previous_moment=previous_moment,
+                                            new_moment=self.moment))
         for player in self.players.by_priority():
             player.role.on_dawn()
-        self._victory_check()
+        self.victory_check()

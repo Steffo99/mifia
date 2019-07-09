@@ -3,7 +3,6 @@ import typing
 if typing.TYPE_CHECKING:
     from .game import Game
     from .role import Role
-    from .objectives import Objective
 
 
 class Player:
@@ -12,7 +11,6 @@ class Player:
         self.connected: bool = True
         self._name: typing.Optional[str] = None
         self._role: typing.Optional["Role"] = None
-        self.objective: typing.Optional["Objective"] = None
 
     @property
     def name(self):
