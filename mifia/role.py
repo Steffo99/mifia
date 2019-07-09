@@ -13,3 +13,8 @@ class Role:
         self.player: "Player" = player
         self.priority: int = self.default_priority
         self.objective: "Objective" = self.default_objective
+
+    @property
+    def game(self):
+        """Shorthand for ``self.player.game``."""
+        return self.player.game

@@ -8,9 +8,11 @@ if typing.TYPE_CHECKING:
 class Player:
     def __init__(self, game: "Game"):
         self.game: "Game" = game
-        self.connected: bool = True
         self._name: typing.Optional[str] = None
         self._role: typing.Optional["Role"] = None
+
+    def __repr__(self):
+        return f"<{self.__class__.__name__} {self._name} {self.role.name}>"
 
     @property
     def name(self):

@@ -12,7 +12,7 @@ def require_gamephase(*phases):
             if self.moment.phase not in phases:
                 raise InvalidStateError(f"This method can be called only if moment is in {phases}, but game "
                                         f"currently is in {self.moment.phase}")
-            return f(*args, **kwargs)
+            return f(self, *args, **kwargs)
 
         return new_func
 

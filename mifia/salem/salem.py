@@ -24,14 +24,14 @@ class Salem(Game):
 
     def __init__(self, rolelist: "RoleList", namelist: "NameList"):
         super().__init__(rolelist, namelist)
-        self.votes: typing.Dict[SalemPlayer, SalemPlayer] = {}
-        self.on_trial: typing.Optional[SalemPlayer] = None
-        self.judgements: typing.Dict[SalemPlayer, Judgement] = {}
-        self.moment: Moment = None
+        self.votes: typing.Dict["SalemPlayer", "SalemPlayer"] = {}
+        self.on_trial: typing.Optional["SalemPlayer"] = None
+        self.judgements: typing.Dict["SalemPlayer", Judgement] = {}
+        self.moment: Moment = Moment(phase=GamePhase.NIGHT, cycle=0)
 
     @require_gamephase(GamePhase.DAY, GamePhase.DUSK, GamePhase.NIGHT)
-    def vote_count(self) -> typing.Dict[SalemPlayer, int]:
-        counts: typing.Dict[SalemPlayer, int] = {}
+    def vote_count(self) -> typing.Dict["SalemPlayer", int]:
+        counts: typing.Dict["SalemPlayer", int] = {}
         for player in self.players.by_randomness():
             counts[player] = 0
         for player in self.votes:

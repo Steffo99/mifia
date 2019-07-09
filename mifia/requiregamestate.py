@@ -12,7 +12,7 @@ def require_gamestate(*states):
             if self.state not in states:
                 raise InvalidStateError(f"This method can be called only if state is in {states}, but game "
                                         f"currently is in {self.state}")
-            return f(*args, **kwargs)
+            return f(self, *args, **kwargs)
 
         return new_func
 

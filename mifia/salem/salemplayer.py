@@ -2,11 +2,11 @@ from ..player import Player
 from ..errors import InvalidStateError
 from ..gamestate import GameState
 from .events import TownChatMessage
+from .judgement import Judgement
 import typing
 if typing.TYPE_CHECKING:
     from .salem import Salem
     from .deaths import Death
-    from .judgement import Judgement
 
 
 class SalemPlayer(Player):
@@ -15,7 +15,7 @@ class SalemPlayer(Player):
         self.game: "Salem"
         self.death: typing.Optional["Death"] = None
         self.vote: typing.Optional[Player] = None
-        self.judgement: typing.Optional["Judgement"] = Judgement.ABSTAINED
+        self.judgement: typing.Optional[Judgement] = Judgement.ABSTAINED
 
     def die(self, death):
         """WARNING: This method does not generate any event, it is the caller responsibility to do so."""

@@ -8,6 +8,12 @@ class RoleList:
     def __init__(self):
         self.generator = self.create_generator()
 
+    def __repr__(self):
+        return f"{self.__class__.__name__}()"
+
+    def __str__(self):
+        return self.name
+
     def validate_player_number(self, current: int):
         raise NotImplementedError()
 

@@ -28,12 +28,10 @@ class SalemRole(Role):
 class SingleTarget(Role):
     def __init__(self, player: "SalemPlayer"):
         super().__init__(player)
-        self._target: typing.Optional["SalemPlayer"] = None
+        self.target: typing.Optional["SalemPlayer"] = None
 
-    @property
-    def target(self):
-        return self._target
+    def set_target(self, target: typing.Optional["SalemPlayer"]):
+        """Set the role target to a player, or clear it.
 
-    @target.setter
-    def target(self, value):
-        self._target = value
+        This function is responsible for sending events."""
+        self.target = target

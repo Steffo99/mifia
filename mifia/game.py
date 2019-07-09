@@ -43,7 +43,7 @@ class Game:
         if not self.rolelist.validate_player_number(len(self.players)):
             raise InvalidPlayerCountError("Game has an invalid player count according to the preset")
         for player in self.players.by_randomness():
-            player.role = next(self.rolelist.generator)
+            player.role = next(self.rolelist.generator)(player)
             player.name = next(self.namelist.generator)
         self.state = GameState.IN_PROGRESS
         self.send_event(events.GameStarted(to=self.players.by_randomness()))

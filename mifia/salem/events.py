@@ -42,10 +42,10 @@ class PassedJudgement(Event):
     def __init__(self,
                  to: typing.Union[None, "SalemPlayer", typing.List["SalemPlayer"]],
                  on_trial: "SalemPlayer",
-                 judgements: typing.Dict[SalemPlayer, Judgement]):
+                 judgements: typing.Dict["SalemPlayer", "Judgement"]):
         super().__init__(to=to)
         self.on_trial: "SalemPlayer" = on_trial
-        self.judgements: typing.Dict[SalemPlayer, Judgement] = judgements
+        self.judgements: typing.Dict["SalemPlayer", "Judgement"] = judgements
 
 
 class Lynch(PlayerDied):
@@ -72,9 +72,6 @@ class ChatMessage(Event):
         super().__init__(to=to)
         self.sender: "SalemPlayer" = sender
         self.msg: str = msg
-
-    def __str__(self):
-        return self.msg
 
     def __repr__(self):
         return f"<{self.__class__.__name__} -> {len(self.to)}: {self.msg}>"
