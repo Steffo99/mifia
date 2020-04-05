@@ -1,5 +1,4 @@
 from ..player import Player
-from ..errors import InvalidStateError
 from ..gamestate import GameState
 from .events import TownChatMessage
 from .judgement import Judgement
@@ -19,9 +18,7 @@ class SalemPlayer(Player):
 
     def die(self, death):
         """WARNING: This method does not generate any event, it is the caller responsibility to do so."""
-        if self.game.state != GameState.IN_PROGRESS:
-            raise InvalidStateError(f"This method can be called only if state is in {GameState.IN_PROGRESS}, but game "
-                                    f"currently is in {self.game.state}")
+        self.game.require_gamestate(GameState.IN_PROGRESS)
         self.role.on_death()
         self.death = death
 

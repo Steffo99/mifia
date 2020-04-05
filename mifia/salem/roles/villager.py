@@ -1,4 +1,4 @@
-from ...objectives import AutoLose
+from ...objectives import PendingObjective
 from .salemrole import SalemRole
 
 
@@ -7,5 +7,6 @@ class Villager(SalemRole):
 
     name: str = "Villager"
     default_priority: int = 0
+
     # TODO: just for testing!
-    default_objective = AutoLose
+    default_objective = PendingObjective

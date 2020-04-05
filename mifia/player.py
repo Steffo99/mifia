@@ -12,20 +12,22 @@ class Player:
         self._role: typing.Optional["Role"] = None
 
     def __repr__(self):
-        return f"<{self.__class__.__name__} {self._name} {self.role.name}>"
+        return f"<{self.__class__.__name__} {self.name} {self.role.name}>"
 
     @property
-    def name(self):
+    def name(self) -> str:
+        if self._name is None:
+            return "[unnamed player]"
         return self._name
 
     @name.setter
     def name(self, value: str):
-        if self.name is not None:
+        if self._name is not None:
             raise MultipleAssignmentError("Can't assign a name to a player that already has one.")
         self._name = value
 
     @property
-    def role(self):
+    def role(self) -> typing.Optional["Role"]:
         return self._role
 
     @role.setter

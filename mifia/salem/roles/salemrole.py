@@ -1,6 +1,7 @@
 from ...role import Role
 import typing
 if typing.TYPE_CHECKING:
+    from ..salem import Salem
     from ..salemplayer import SalemPlayer
 
 

@@ -1,6 +1,5 @@
-from .requiregamestate import require_gamestate
 from .playerlist import PlayerList
-from .errors import InvalidPlayerCountError
+from .errors import InvalidPlayerCountError, InvalidStateError
 from .gamestate import GameState
 from . import events
 import typing
@@ -25,21 +24,27 @@ class Game:
     def __repr__(self):
         return f"<{self.__class__.__name__} {self.state}, with {len(self.players)} players>"
 
+    def require_gamestate(self, *states):
+        if self.state not in states:
+            raise InvalidStateError(f"This method can be called only if state is in {states}, but game "
+                                    f"currently is in {self.state}")
+
     def send_event(self, event: events.Event):
         self.events.append(event)
 
-    @require_gamestate(GameState.WAITING_FOR_PLAYERS)
     def player_join(self, joiner: "Player"):
+        self.require_gamestate(GameState.WAITING_FOR_PLAYERS)
         self.players.add(joiner)
         self.send_event(events.PlayerJoined(to=self.players.by_randomness(), joiner=joiner))
 
-    @require_gamestate(GameState.WAITING_FOR_PLAYERS)
     def player_leave(self, leaver: "Player"):
+        self.require_gamestate(GameState.WAITING_FOR_PLAYERS)
         self.players.remove(leaver)
         self.send_event(events.PlayerLeft(to=self.players.by_randomness(), leaver=leaver))
 
-    @require_gamestate(GameState.WAITING_FOR_PLAYERS)
     def start_game(self):
+        self.require_gamestate(GameState.WAITING_FOR_PLAYERS)
+
         if not self.rolelist.validate_player_number(len(self.players)):
             raise InvalidPlayerCountError("Game has an invalid player count according to the preset")
         for player in self.players.by_randomness():
@@ -48,16 +53,16 @@ class Game:
         self.state = GameState.IN_PROGRESS
         self.send_event(events.GameStarted(to=self.players.by_randomness()))
 
-    @require_gamestate(GameState.IN_PROGRESS)
     def victory_check(self):
+        self.require_gamestate(GameState.IN_PROGRESS)
         for player in self.players.by_priority():
             if player.role.objective.status() is ...:
                 break
         else:
             self.end_game()
 
-    @require_gamestate(GameState.IN_PROGRESS)
     def end_game(self):
+        self.require_gamestate(GameState.IN_PROGRESS)
         self.state = GameState.ENDED
         results_dict = {}
         for player in self.players.by_priority():

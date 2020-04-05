@@ -1,7 +1,7 @@
 from .salemrole import SalemRole, SingleTarget
 from ..deaths import KilledByMafia
 from ...events import Event
-from ...objectives import AutoWin
+from ...objectives import PendingObjective
 import typing
 if typing.TYPE_CHECKING:
     from ..salemplayer import SalemPlayer
@@ -21,8 +21,9 @@ class Mafioso(SalemRole, SingleTarget):
 
     name: str = "Mafioso"
     default_priority: int = 1
+
     # TODO: just for testing!
-    default_objective = AutoWin
+    default_objective = PendingObjective
 
     def on_dawn(self):
         """Kill the target at dawn."""
@@ -31,6 +32,7 @@ class Mafioso(SalemRole, SingleTarget):
         if self.target is None:
             return
         self.target.die(KilledByMafia(self.player.game.moment, self.player))
+        self.target = None
 
     def set_target(self, target: typing.Optional["SalemPlayer"]):
         super().set_target(target)
