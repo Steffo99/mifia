@@ -13,7 +13,7 @@ class NameList:
         return f"{self.__class__.__name__}()"
 
     def __str__(self):
-        return self.name
+        return self.list_name
 
     def create_generator(self) -> typing.Generator[str, None, None]:
         while True:

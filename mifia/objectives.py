@@ -3,11 +3,21 @@ if typing.TYPE_CHECKING:
     from .player import Player
 
 
+# TODO: pytest does not like ... in the type annotations, refactor objectives status with a enum
+
+
 class Objective:
     def __init__(self, player):
         self.player: Player = player
 
     def status(self) -> typing.Union[..., bool]:
+        """An objective can have three states: ``True``, ``False`` and ``...``.
+
+        ``True`` means that the objective has been completed.
+
+        ``False`` means that the objective has been failed.
+
+        ``...`` means that the objective is still pending."""
         raise NotImplementedError()
 
 

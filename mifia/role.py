@@ -7,12 +7,12 @@ if typing.TYPE_CHECKING:
 class Role:
     name: str = NotImplemented
     default_priority: int = NotImplemented
-    default_objective: "Objective" = NotImplemented
+    default_objective: typing.Type["Objective"] = NotImplemented
 
     def __init__(self, player: "Player"):
         self.player: "Player" = player
         self.priority: int = self.default_priority
-        self.objective: "Objective" = self.default_objective
+        self.objective: "Objective" = self.default_objective()
 
     @property
     def game(self):

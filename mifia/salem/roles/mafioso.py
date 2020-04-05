@@ -1,6 +1,7 @@
 from .salemrole import SalemRole, SingleTarget
 from ..deaths import KilledByMafia
 from ...events import Event
+from ...objectives import AutoWin
 import typing
 if typing.TYPE_CHECKING:
     from ..salemplayer import SalemPlayer
@@ -16,8 +17,12 @@ class MafiosoTargetSelect(Event):
 
 
 class Mafioso(SalemRole, SingleTarget):
+    """A role that can target another player and kill them at dawn."""
+
     name: str = "Mafioso"
     default_priority: int = 1
+    # TODO: just for testing!
+    default_objective = AutoWin
 
     def on_dawn(self):
         """Kill the target at dawn."""
