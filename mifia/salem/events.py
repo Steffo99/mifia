@@ -31,10 +31,10 @@ class TrialStart(Event):
     def __init__(self,
                  to: typing.Union[None, "SalemPlayer", typing.List["SalemPlayer"]],
                  on_trial: "SalemPlayer",
-                 vote_counts: typing.Dict["SalemPlayer", int]):
+                 votes: typing.Dict["SalemPlayer", "SalemPlayer"]):
         super().__init__(to=to)
         self.on_trial: "SalemPlayer" = on_trial
-        self.vote_counts: typing.Dict["SalemPlayer", int] = vote_counts
+        self.votes: typing.Dict["SalemPlayer", "SalemPlayer"] = votes
 
 
 class PassedJudgement(Event):

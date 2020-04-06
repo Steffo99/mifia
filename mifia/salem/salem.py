@@ -23,9 +23,7 @@ class Salem(Game):
 
     def __init__(self, rolelist: "RoleList", namelist: "NameList"):
         super().__init__(rolelist, namelist)
-        self.votes: typing.Dict["SalemPlayer", "SalemPlayer"] = {}
         self.on_trial: typing.Optional["SalemPlayer"] = None
-        self.judgements: typing.Dict["SalemPlayer", Judgement] = {}
         self.moment: Moment = Moment(phase=GamePhase.NIGHT, cycle=0)
 
     def require_gamephase(self, *phases):
@@ -33,13 +31,20 @@ class Salem(Game):
             raise InvalidStateError(f"This method can be called only if phase is in {phases}, but game "
                                     f"currently is in {self.moment.phase}")
 
+    @property
+    def votes(self) -> typing.Dict["SalemPlayer", "SalemPlayer"]:
+        d = {}
+        for player in self.players.by_randomness():
+            d[player] = player.vote
+        return d
+
     def vote_count(self) -> typing.Dict["SalemPlayer", int]:
         self.require_gamestate(GameState.IN_PROGRESS)
         self.require_gamephase(GamePhase.DAY, GamePhase.DUSK, GamePhase.NIGHT)
         counts: typing.Dict["SalemPlayer", int] = {}
         for player in self.players.by_randomness():
             counts[player] = 0
-        for player in self.votes:
+        for player in self.votes.values():
             counts[player] += 1
         return counts
 
@@ -48,6 +53,13 @@ class Salem(Game):
         self.require_gamephase(GamePhase.DAY, GamePhase.DUSK, GamePhase.NIGHT)
         counts = self.vote_count()
         return sorted(counts, key=lambda p: -counts[p])
+
+    @property
+    def judgements(self) -> typing.Dict["SalemPlayer", Judgement]:
+        d = {}
+        for player in self.players.by_randomness():
+            d[player] = player.judgement
+        return d
 
     def judgements_count(self) -> int:
         self.require_gamestate(GameState.IN_PROGRESS)
@@ -90,7 +102,9 @@ class Salem(Game):
         self.on_trial = self.vote_order()[0]
         self.send_event(events.TrialStart(to=self.players.by_randomness(),
                                           on_trial=self.on_trial,
-                                          vote_counts=self.vote_count()))
+                                          votes=self.votes))
+        for player in self.players.by_priority():
+            player.vote = None
 
     def end_dusk(self):
         self.require_gamestate(GameState.IN_PROGRESS)
@@ -110,6 +124,8 @@ class Salem(Game):
             self.send_event(events.Lynch(to=self.players.by_randomness(),
                                          dead=self.on_trial))
         self.on_trial = None
+        for player in self.players.by_priority():
+            player.judgement = None
 
     def end_night(self):
         self.require_gamestate(GameState.IN_PROGRESS)
