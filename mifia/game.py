@@ -1,4 +1,5 @@
 from .playerlist import PlayerList
+from .eventlist import EventList
 from .errors import InvalidPlayerCountError, InvalidStateError
 from .gamestate import GameState
 from . import events
@@ -16,8 +17,8 @@ class Game:
     Instantiate one of these to create a new game lobby."""
     def __init__(self, rolelist: "RoleList", namelist: "NameList"):
         self.state: GameState = GameState.WAITING_FOR_PLAYERS
-        self.events: typing.List[events.Event] = []
-        self.players = PlayerList()
+        self.events: EventList = EventList()
+        self.players: PlayerList = PlayerList()
         self.rolelist: "RoleList" = rolelist
         self.namelist: "NameList" = namelist
 
@@ -30,7 +31,7 @@ class Game:
                                     f"currently is in {self.state}")
 
     def send_event(self, event: events.Event):
-        self.events.append(event)
+        self.events.add(event)
 
     def player_join(self, joiner: "Player"):
         self.require_gamestate(GameState.WAITING_FOR_PLAYERS)

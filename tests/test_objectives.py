@@ -28,74 +28,98 @@ def test_pendingobjective(player):
     assert obj.status() is ...
 
 
-def test_andobjective(player):
+def test_andobjective_ww(player):
     o1 = mo.AutoWin(player)
     o2 = mo.AutoWin(player)
     o12 = mo.AndObjective(player, [o1, o2])
     assert o12.status() is True
 
+
+def test_andobjective_wl(player):
     o3 = mo.AutoWin(player)
     o4 = mo.AutoLose(player)
     o34 = mo.AndObjective(player, [o3, o4])
     assert o34.status() is False
 
+
+def test_andobjective_ll(player):
     o5 = mo.AutoLose(player)
     o6 = mo.AutoLose(player)
     o56 = mo.AndObjective(player, [o5, o6])
     assert o56.status() is False
 
+
+def test_andobjective_wp(player):
     o7 = mo.AutoWin(player)
     o8 = mo.PendingObjective(player)
     o78 = mo.AndObjective(player, [o7, o8])
     assert o78.status() is ...
 
+
+def test_andobjective_lp(player):
     o9 = mo.AutoLose(player)
     o10 = mo.PendingObjective(player)
     o910 = mo.AndObjective(player, [o9, o10])
     assert o910.status() is False
 
+
+def test_andobjective_wn(player):
     o11 = mo.AutoWin(player)
     o12 = mo.NoObjective(player)
     o1112 = mo.AndObjective(player, [o11, o12])
     assert o1112.status() is True
 
+
+def test_andobjective_ln(player):
     o13 = mo.AutoLose(player)
     o14 = mo.NoObjective(player)
     o1314 = mo.AndObjective(player, [o13, o14])
     assert o1314.status() is False
 
 
-def test_orobjective(player):
+def test_orobjective_ww(player):
     o1 = mo.AutoWin(player)
     o2 = mo.AutoWin(player)
     o12 = mo.OrObjective(player, [o1, o2])
     assert o12.status() is True
 
+
+def test_orobjective_wl(player):
     o3 = mo.AutoWin(player)
     o4 = mo.AutoLose(player)
     o34 = mo.OrObjective(player, [o3, o4])
     assert o34.status() is True
 
+
+def test_orobjective_ll(player):
     o5 = mo.AutoLose(player)
     o6 = mo.AutoLose(player)
     o56 = mo.OrObjective(player, [o5, o6])
     assert o56.status() is False
 
+
+def test_orobjective_wp(player):
     o7 = mo.AutoWin(player)
     o8 = mo.PendingObjective(player)
     o78 = mo.OrObjective(player, [o7, o8])
     assert o78.status() is True
 
+
+def test_orobjective_lp(player):
     o9 = mo.AutoLose(player)
     o10 = mo.PendingObjective(player)
     o910 = mo.OrObjective(player, [o9, o10])
     assert o910.status() is ...
 
+
+def test_orobjective_wn(player):
     o11 = mo.AutoWin(player)
     o12 = mo.NoObjective(player)
     o1112 = mo.OrObjective(player, [o11, o12])
     assert o1112.status() is True
 
+
+def test_orobjective_ln(player):
     o13 = mo.AutoLose(player)
     o14 = mo.NoObjective(player)
     o1314 = mo.OrObjective(player, [o13, o14])

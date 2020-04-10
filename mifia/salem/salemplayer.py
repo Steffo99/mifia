@@ -17,10 +17,14 @@ class SalemPlayer(Player):
         self.judgement: typing.Optional[Judgement] = Judgement.ABSTAINED
 
     def die(self, death):
-        """WARNING: This method does not generate any event, it is the caller responsibility to do so."""
+        """Set the player's death to a value. In other words, kill the player.
+
+        Warning:
+             This method does not generate any event, it is the caller responsibility to do so."""
         self.game.require_gamestate(GameState.IN_PROGRESS)
         self.role.on_death()
         self.death = death
 
     def chat(self, msg: str):
+        """Send a message in the town chat."""
         self.game.send_event(TownChatMessage(to=self.game.players.by_randomness(), sender=self, msg=msg))

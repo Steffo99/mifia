@@ -1,16 +1,16 @@
-import typing
+from typing import Type, TYPE_CHECKING, List
 import secrets
 from .player import Player
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     from .role import Role
 
 
 class PlayerList:
-    def __init__(self, list=None):
-        if list is None:
-            self.list: typing.List[Player] = []
+    def __init__(self, li=None):
+        if li is None:
+            self.list: List[Player] = []
         else:
-            self.list = list
+            self.list = li
 
     def __len__(self):
         return len(self.list)
@@ -24,13 +24,13 @@ class PlayerList:
     def remove(self, player: Player):
         self.list.remove(player)
 
-    def by_priority(self) -> typing.List[Player]:
+    def by_priority(self) -> List[Player]:
         return sorted(self.list, key=lambda p: p.role.priority)
 
-    def by_name(self) -> typing.List[Player]:
+    def by_name(self) -> List[Player]:
         return sorted(self.list, key=lambda p: p.name)
 
-    def by_randomness(self) -> typing.List[Player]:
+    def by_randomness(self) -> List[Player]:
         origin = self.list.copy()
         result = []
         for _ in self.list:
@@ -40,5 +40,5 @@ class PlayerList:
         assert len(result) == len(self.list)
         return result
 
-    def with_role(self, role: typing.Type["Role"]) -> typing.List[Player]:
+    def with_role(self, role: Type["Role"]) -> List[Player]:
         return [player for player in self.list if isinstance(player.role, role)]

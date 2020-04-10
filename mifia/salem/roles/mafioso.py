@@ -1,19 +1,10 @@
+from typing import *
 from .salemrole import SalemRole, SingleTarget
 from ..deaths import KilledByMafia
-from ...events import Event
+from ..events import MafiaKill
 from ...objectives import PendingObjective
-import typing
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     from ..salemplayer import SalemPlayer
-
-
-class MafiosoTargetSelect(Event):
-    """A Mafioso changed its target."""
-    def __init__(self, to: typing.Union[None, "SalemPlayer", typing.List["SalemPlayer"]],
-                 mafioso: "Mafioso", target: typing.Optional["SalemPlayer"],):
-        super().__init__(to=to)
-        self.mafioso: "Mafioso" = mafioso
-        self.target: typing.Optional["SalemPlayer"] = target
 
 
 class Mafioso(SalemRole, SingleTarget):
@@ -27,15 +18,18 @@ class Mafioso(SalemRole, SingleTarget):
 
     def on_dawn(self):
         """Kill the target at dawn."""
+        self.player: SalemPlayer
+
         if self.player.death:
             return
         if self.target is None:
             return
-        self.target.die(KilledByMafia(self.player.game.moment, self.player))
-        self.target = None
+        self.target.die(KilledByMafia(self.game.moment, self.player))
+        self.game.send_event(MafiaKill(to=self.game.players.by_randomness(), dead=self.target, killer=self))
+        self._target = None
 
-    def set_target(self, target: typing.Optional["SalemPlayer"]):
-        super().set_target(target)
-        self.player.game.send_event(MafiosoTargetSelect(to=self.game.players.with_role(Mafioso),
-                                                        mafioso=self,
-                                                        target=target))
+    def get_target_change_destination(self) -> List["SalemPlayer"]:
+        return self.game.players.with_role(Mafioso)
+
+    def get_valid_targets(self) -> List["SalemPlayer"]:
+        return [player for player in self.game.players.by_name() if player.death is None]

@@ -1,6 +1,6 @@
+from typing import Optional, TYPE_CHECKING, Dict, List, Union
 from ..events import Event
-import typing
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     from .moment import Moment
     from .salemplayer import SalemPlayer
     from .roles.salemrole import SalemRole
@@ -10,7 +10,7 @@ if typing.TYPE_CHECKING:
 class PlayerDied(Event):
     """A player has died... Somehow."""
     def __init__(self,
-                 to: typing.Union[None, "SalemPlayer", typing.List["SalemPlayer"]],
+                 to: Union[None, "SalemPlayer", List["SalemPlayer"]],
                  dead: "SalemPlayer"):
         super().__init__(to=to)
         self.dead: SalemPlayer = dead
@@ -19,7 +19,7 @@ class PlayerDied(Event):
 class MafiaKill(PlayerDied):
     """A player was killed by the Mafia."""
     def __init__(self,
-                 to: typing.Union[None, "SalemPlayer", typing.List["SalemPlayer"]],
+                 to: Union[None, "SalemPlayer", List["SalemPlayer"]],
                  dead: "SalemPlayer",
                  killer: "SalemRole"):
         super().__init__(to=to, dead=dead)
@@ -29,23 +29,23 @@ class MafiaKill(PlayerDied):
 class TrialStart(Event):
     """Votes to put a player on trial has ended."""
     def __init__(self,
-                 to: typing.Union[None, "SalemPlayer", typing.List["SalemPlayer"]],
+                 to: Union[None, "SalemPlayer", List["SalemPlayer"]],
                  on_trial: "SalemPlayer",
-                 votes: typing.Dict["SalemPlayer", "SalemPlayer"]):
+                 votes: Dict["SalemPlayer", "SalemPlayer"]):
         super().__init__(to=to)
         self.on_trial: "SalemPlayer" = on_trial
-        self.votes: typing.Dict["SalemPlayer", "SalemPlayer"] = votes
+        self.votes: Dict["SalemPlayer", "SalemPlayer"] = votes
 
 
 class PassedJudgement(Event):
     """A judgement was passed to the on-trial player."""
     def __init__(self,
-                 to: typing.Union[None, "SalemPlayer", typing.List["SalemPlayer"]],
+                 to: Union[None, "SalemPlayer", List["SalemPlayer"]],
                  on_trial: "SalemPlayer",
-                 judgements: typing.Dict["SalemPlayer", "Judgement"]):
+                 judgements: Dict["SalemPlayer", "Judgement"]):
         super().__init__(to=to)
         self.on_trial: "SalemPlayer" = on_trial
-        self.judgements: typing.Dict["SalemPlayer", "Judgement"] = judgements
+        self.judgements: Dict["SalemPlayer", "Judgement"] = judgements
 
 
 class Lynch(PlayerDied):
@@ -55,18 +55,18 @@ class Lynch(PlayerDied):
 class MomentChange(Event):
     """The game moment has changed."""
     def __init__(self,
-                 to: typing.Union[None, "SalemPlayer", typing.List["SalemPlayer"]],
-                 previous_moment: typing.Optional["Moment"],
+                 to: Union[None, "SalemPlayer", List["SalemPlayer"]],
+                 previous_moment: Optional["Moment"],
                  new_moment: "Moment"):
         super().__init__(to=to)
-        self.previous_moment: typing.Optional["Moment"] = previous_moment
+        self.previous_moment: Optional["Moment"] = previous_moment
         self.new_moment: "Moment" = new_moment
 
 
 class ChatMessage(Event):
     """Any chat message."""
     def __init__(self,
-                 to: typing.Union[None, "SalemPlayer", typing.List["SalemPlayer"]],
+                 to: Union[None, "SalemPlayer", List["SalemPlayer"]],
                  sender: "SalemPlayer",
                  msg: str):
         super().__init__(to=to)
@@ -83,3 +83,15 @@ class TownChatMessage(ChatMessage):
 
 class MafiaChatMessage(ChatMessage):
     """A message sent in the mafia (private) chat."""
+
+
+class TargetChangeEvent(Event):
+    """The target of a :class:`SingleTarget` role was changed."""
+
+    def __init__(self,
+                 to: Union[None, "SalemPlayer", List["SalemPlayer"]],
+                 source: "SalemPlayer",
+                 target: Optional["SalemPlayer"]):
+        super().__init__(to=to)
+        self.source: "SalemPlayer" = source
+        self.target: Optional["SalemPlayer"] = target

@@ -1,37 +1,42 @@
 import pytest
 
 import mifia.salem as s
-import mifia.namelists as nl
-import mifia.salem.rolelists as rl
 import mifia.salem.roles as r
 import mifia.salem.judgement as j
 
+import mifia.salem.events as e
 
-@pytest.fixture
-def basic_salem_game() -> s.Salem:
-    g = s.Salem(namelist=nl.RoyalGames(), rolelist=rl.SimpleRoleList())
-
-    g.player_join(s.SalemPlayer(g))
-    g.player_join(s.SalemPlayer(g))
-    g.player_join(s.SalemPlayer(g))
-    g.player_join(s.SalemPlayer(g))
-    g.player_join(s.SalemPlayer(g))
-
-    g.start_game()
-
-    return g
+from .basic_salem_game import basic_salem_game
 
 
 def test_mafioso_kill(basic_salem_game: s.Salem):
     innocent: s.SalemPlayer = basic_salem_game.players.with_role(r.Villager)[0]
     mafioso: s.SalemPlayer = basic_salem_game.players.with_role(r.Mafioso)[0]
-    mafioso.role.set_target(innocent)
+    mafioso.role.target = innocent
+
+    assert basic_salem_game.events.get_first_event_of_type(e.TargetChangeEvent) is not None
 
     basic_salem_game.end_night()
     basic_salem_game.end_dawn()
 
     assert innocent.death is not None
     assert mafioso.role.target is None
+    assert basic_salem_game.events.get_first_event_of_type(e.MafiaKill) is not None
+
+
+def test_town_chat(basic_salem_game: s.Salem):
+    player: s.SalemPlayer = basic_salem_game.players.by_randomness()[0]
+    player.chat("Hello world!")
+
+    message: e.TownChatMessage = basic_salem_game.events.get_first_event_of_type(e.TownChatMessage)
+    assert message is not None
+    assert message.sender is player
+    assert message.msg == "Hello world!"
+
+
+def test_mafia_chat(basic_salem_game: s.Salem):
+    # TODO: What would the best way to make an evil chat be?
+    ...
 
 
 def test_lynch(basic_salem_game: s.Salem):

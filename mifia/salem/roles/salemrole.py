@@ -1,14 +1,14 @@
+from typing import *
 from ...role import Role
-import typing
-if typing.TYPE_CHECKING:
-    from ..salem import Salem
-    from ..salemplayer import SalemPlayer
+from ...errors import GameError
+from ..salemplayer import SalemPlayer
+from ..events import TargetChangeEvent
 
 
 class SalemRole(Role):
-    def __init__(self, player: "SalemPlayer"):
+    def __init__(self, player: SalemPlayer):
         super().__init__(player)
-        self.player: "SalemPlayer"
+        self.player: SalemPlayer
 
     def on_dawn(self):
         """Triggered when dawn starts."""
@@ -26,13 +26,49 @@ class SalemRole(Role):
         """Triggered after the player dies."""
 
 
+class InvalidTargetException(GameError):
+    """The target that the player selected is invalid."""
+
+
 class SingleTarget(Role):
-    def __init__(self, player: "SalemPlayer"):
+    """A role which can target another player."""
+
+    def __init__(self, player: SalemPlayer):
         super().__init__(player)
-        self.target: typing.Optional["SalemPlayer"] = None
+        self._target: Optional[SalemPlayer] = None
 
-    def set_target(self, target: typing.Optional["SalemPlayer"]):
-        """Set the role target to a player, or clear it.
+    def get_valid_targets(self) -> List[SalemPlayer]:
+        """Return a :class:`list` of players in the game that can be targeted."""
+        return [player for player in self.game.players.by_randomness()]
 
-        This function is responsible for sending events."""
-        self.target = target
+    def get_target_change_destination(self) -> List[SalemPlayer]:
+        """Return a :class:`list` of players that should be notified of target changes."""
+        self.player: SalemPlayer
+
+        return [self.player]
+
+    @property
+    def target(self):
+        return self._target
+    
+    @target.setter
+    def target(self, value):
+        self.player: SalemPlayer
+
+        if isinstance(value, SalemPlayer):
+            valid_targets = self.get_valid_targets()
+            if value not in valid_targets:
+                raise InvalidTargetException(f"{value} is not in the valid targets list.")
+        elif value is None:
+            pass
+        else:
+            raise TypeError("'target' must be set to a SalemPlayer instance.")
+
+        self._target = value
+        self.game.send_event(
+            TargetChangeEvent(
+                to=self.get_target_change_destination(),
+                source=self.player,
+                target=value
+            )
+        )
