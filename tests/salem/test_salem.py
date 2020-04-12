@@ -8,7 +8,7 @@ from mifia.salem.roles.villager import Villager
 from mifia.salem.judgement import Judgement
 
 from mifia.roles.singletarget import TargetChangeEvent
-from mifia.salem.events import PlayerDied
+from mifia.salem.events import PlayerDied, Lynch
 from mifia.roles.rolewithchat import ChatMessage, InaccessibleChannelError
 
 from .fixtures import basic_salem_game
@@ -80,6 +80,11 @@ def test_lynch(basic_salem_game: Salem):
     basic_salem_game.end_dusk()
 
     assert target.role.death is not None
+
+    lynch: Optional[Lynch] = basic_salem_game.event_manager.get_first_event_of_type(Lynch)
+    assert lynch is not None
+    assert lynch.channel == "main"
+    assert lynch.dead == target
 
     for player in basic_salem_game.players.by_randomness():
         assert player.role.judgement is None

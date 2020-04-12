@@ -12,7 +12,7 @@ from . import events
 if TYPE_CHECKING:
     from ..player import Player
     from ..rolelist import RoleList
-    from ..namelists import NameList
+    from ..namelists.namelist import NameList
 
 
 class LynchedByTheTown(Death):
