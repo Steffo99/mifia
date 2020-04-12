@@ -1,5 +1,6 @@
-import typing
-from .role import Role
+from typing import Generator
+
+from .roles.role import Role
 
 
 class RoleList:
@@ -17,5 +18,5 @@ class RoleList:
     def validate_player_number(self, current: int):
         raise NotImplementedError()
 
-    def create_generator(self) -> typing.Generator[Role, None, None]:
+    def create_generator(self) -> Generator[Role, None, None]:
         raise NotImplementedError()

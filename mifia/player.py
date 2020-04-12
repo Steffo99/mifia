@@ -1,18 +1,30 @@
+from typing import Optional, TYPE_CHECKING
+
 from .errors import MultipleAssignmentError
-import typing
-if typing.TYPE_CHECKING:
+
+if TYPE_CHECKING:
     from .game import Game
-    from .role import Role
+    from .roles.role import Role
 
 
 class Player:
     def __init__(self, game: "Game"):
         self.game: "Game" = game
-        self._name: typing.Optional[str] = None
-        self._role: typing.Optional["Role"] = None
+        self._name: Optional[str] = None
+        self._role: Optional["Role"] = None
+        # All players are subscribed to a "player-{_name}" loopback channel and the "main" channel by default
+        self.game.event_manager.subscribe(self, self.loopback_channel())
+        self.game.event_manager.subscribe(self, "main")
 
     def __repr__(self):
         return f"<{self.__class__.__name__} {self.name} {self.role.name}>"
+
+    def loopback_channel(self) -> str:
+        """Get the name of the loopback channel of the player.
+
+        The loopback channel is a channel where only the player itself is subscribed, and can be used for private
+        system messages."""
+        return f"player-{self._name}"
 
     @property
     def name(self) -> str:
@@ -27,7 +39,7 @@ class Player:
         self._name = value
 
     @property
-    def role(self) -> typing.Optional["Role"]:
+    def role(self) -> Optional["Role"]:
         return self._role
 
     @role.setter

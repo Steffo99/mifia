@@ -1,5 +1,5 @@
 from .playerlist import PlayerList
-from .eventlist import EventList
+from .eventmanager import EventManager
 from .errors import InvalidPlayerCountError, InvalidStateError
 from .gamestate import GameState
 from . import events
@@ -17,7 +17,7 @@ class Game:
     Instantiate one of these to create a new game lobby."""
     def __init__(self, rolelist: "RoleList", namelist: "NameList"):
         self.state: GameState = GameState.WAITING_FOR_PLAYERS
-        self.events: EventList = EventList()
+        self.event_manager: EventManager = EventManager()
         self.players: PlayerList = PlayerList()
         self.rolelist: "RoleList" = rolelist
         self.namelist: "NameList" = namelist
@@ -30,18 +30,15 @@ class Game:
             raise InvalidStateError(f"This method can be called only if state is in {states}, but game "
                                     f"currently is in {self.state}")
 
-    def send_event(self, event: events.Event):
-        self.events.add(event)
-
     def player_join(self, joiner: "Player"):
         self.require_gamestate(GameState.WAITING_FOR_PLAYERS)
         self.players.add(joiner)
-        self.send_event(events.PlayerJoined(to=self.players.by_randomness(), joiner=joiner))
+        self.event_manager.post(events.PlayerJoined(channel="main", joiner=joiner))
 
     def player_leave(self, leaver: "Player"):
         self.require_gamestate(GameState.WAITING_FOR_PLAYERS)
         self.players.remove(leaver)
-        self.send_event(events.PlayerLeft(to=self.players.by_randomness(), leaver=leaver))
+        self.event_manager.post(events.PlayerLeft(channel="main", leaver=leaver))
 
     def start_game(self):
         self.require_gamestate(GameState.WAITING_FOR_PLAYERS)
@@ -52,7 +49,7 @@ class Game:
             player.role = next(self.rolelist.generator)(player)
             player.name = next(self.namelist.generator)
         self.state = GameState.IN_PROGRESS
-        self.send_event(events.GameStarted(to=self.players.by_randomness()))
+        self.event_manager.post(events.GameStarted(channel="main"))
 
     def victory_check(self):
         self.require_gamestate(GameState.IN_PROGRESS)
@@ -68,4 +65,4 @@ class Game:
         results_dict = {}
         for player in self.players.by_priority():
             results_dict[player] = player.role.objective.status()
-        self.send_event(events.GameEnded(to=self.players.by_priority(), results=results_dict))
+        self.event_manager.post(events.GameEnded(channel="main", results=results_dict))

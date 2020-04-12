@@ -1,45 +1,63 @@
 import pytest
+from typing import *
 
-import mifia.salem as s
-import mifia.salem.roles as r
-import mifia.salem.judgement as j
+from mifia.salem.salem import Salem
+from mifia.salem.salemplayer import SalemPlayer
+from mifia.salem.roles.mafioso import Mafioso
+from mifia.salem.roles.villager import Villager
+from mifia.salem.judgement import Judgement
 
-import mifia.salem.events as e
+from mifia.roles.singletarget import TargetChangeEvent
+from mifia.salem.events import PlayerDied
+from mifia.roles.canchat import ChatMessage, InaccessibleChannelError
 
-from .basic_salem_game import basic_salem_game
+from .fixtures import basic_salem_game
 
 
-def test_mafioso_kill(basic_salem_game: s.Salem):
-    innocent: s.SalemPlayer = basic_salem_game.players.with_role(r.Villager)[0]
-    mafioso: s.SalemPlayer = basic_salem_game.players.with_role(r.Mafioso)[0]
+def test_mafioso_kill(basic_salem_game: Salem):
+    innocent: SalemPlayer = basic_salem_game.players.with_role(Villager)[0]
+    mafioso: SalemPlayer = basic_salem_game.players.with_role(Mafioso)[0]
     mafioso.role.target = innocent
 
-    assert basic_salem_game.events.get_first_event_of_type(e.TargetChangeEvent) is not None
+    assert basic_salem_game.event_manager.get_first_event_of_type(TargetChangeEvent) is not None
 
     basic_salem_game.end_night()
     basic_salem_game.end_dawn()
 
     assert innocent.death is not None
     assert mafioso.role.target is None
-    assert basic_salem_game.events.get_first_event_of_type(e.MafiaKill) is not None
+    assert basic_salem_game.event_manager.get_first_event_of_type(PlayerDied) is not None
 
 
-def test_town_chat(basic_salem_game: s.Salem):
-    player: s.SalemPlayer = basic_salem_game.players.by_randomness()[0]
-    player.chat("Hello world!")
+def test_town_chat(basic_salem_game: Salem):
+    player: SalemPlayer = basic_salem_game.players.by_randomness()[0]
+    player.role.chat("main", "Hello world!")
 
-    message: e.TownChatMessage = basic_salem_game.events.get_first_event_of_type(e.TownChatMessage)
+    message: Optional[ChatMessage] = basic_salem_game.event_manager.get_first_event_of_type(ChatMessage)
     assert message is not None
+    assert message.channel == "main"
     assert message.sender is player
     assert message.msg == "Hello world!"
 
 
-def test_mafia_chat(basic_salem_game: s.Salem):
-    # TODO: What would the best way to make an evil chat be?
-    ...
+def test_mafia_chat(basic_salem_game: Salem):
+    player: SalemPlayer = basic_salem_game.players.with_role(Mafioso)[0]
+    player.role.chat("mafia", "Hello world!")
+
+    message: Optional[ChatMessage] = basic_salem_game.event_manager.get_first_event_of_type(ChatMessage)
+    assert message is not None
+    assert message.channel == "mafia"
+    assert message.sender is player
+    assert message.msg == "Hello world!"
 
 
-def test_lynch(basic_salem_game: s.Salem):
+def test_inaccessible_chat(basic_salem_game: Salem):
+    player: SalemPlayer = basic_salem_game.players.by_randomness()[0]
+    with pytest.raises(InaccessibleChannelError):
+        player.role.chat("__INVALID__", "Hello world!")
+
+
+def test_lynch(basic_salem_game: Salem):
     target = basic_salem_game.players.by_randomness()[0]
 
     basic_salem_game.end_night()
@@ -54,7 +72,7 @@ def test_lynch(basic_salem_game: s.Salem):
 
     for player in basic_salem_game.players.by_randomness():
         assert player.vote is None
-        player.judgement = j.Judgement.GUILTY
+        player.judgement = Judgement.GUILTY
 
     basic_salem_game.end_dusk()
 

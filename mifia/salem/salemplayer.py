@@ -1,22 +1,26 @@
+from typing import Optional, TYPE_CHECKING
+
 from ..player import Player
 from ..gamestate import GameState
-from .events import TownChatMessage
 from .judgement import Judgement
-import typing
-if typing.TYPE_CHECKING:
+
+if TYPE_CHECKING:
     from .salem import Salem
-    from .deaths import Death
+    from .roles.salemrole import SalemRole
+    from .death import Death
 
 
 class SalemPlayer(Player):
     def __init__(self, game: "Salem"):
         super().__init__(game)
         self.game: "Salem"
-        self.death: typing.Optional["Death"] = None
-        self.vote: typing.Optional[Player] = None
-        self.judgement: typing.Optional[Judgement] = Judgement.ABSTAINED
+        self.role: "SalemRole"
 
-    def die(self, death):
+        self.death: Optional["Death"] = None
+        self.vote: Optional[Player] = None
+        self.judgement: Optional[Judgement] = Judgement.ABSTAINED
+
+    def die(self, death) -> None:
         """Set the player's death to a value. In other words, kill the player.
 
         Warning:
@@ -24,7 +28,3 @@ class SalemPlayer(Player):
         self.game.require_gamestate(GameState.IN_PROGRESS)
         self.role.on_death()
         self.death = death
-
-    def chat(self, msg: str):
-        """Send a message in the town chat."""
-        self.game.send_event(TownChatMessage(to=self.game.players.by_randomness(), sender=self, msg=msg))

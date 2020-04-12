@@ -1,7 +1,7 @@
 import typing
-from .objectives import Objective, NoObjective
+from ..objectives import Objective, NoObjective
 if typing.TYPE_CHECKING:
-    from .player import Player
+    from ..player import Player
 
 
 class Role:

@@ -1,6 +1,7 @@
-import typing
-if typing.TYPE_CHECKING:
-    from ..moment import Moment
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .moment import Moment
 
 
 class Death:

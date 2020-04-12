@@ -1,5 +1,7 @@
-import abc
 from typing import *
+
+import abc
+
 if TYPE_CHECKING:
     from .player import Player
 

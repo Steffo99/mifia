@@ -1,10 +1,21 @@
-from typing import *
-from .salemrole import SalemRole, SingleTarget
-from ..deaths import KilledByMafia
-from ..events import MafiaKill
+from typing import TYPE_CHECKING, List
+
 from ...objectives import PendingObjective
+from ...roles.singletarget import SingleTarget
+from ..death import Death
+from ..events import PlayerDied
+from .salemrole import SalemRole
+
 if TYPE_CHECKING:
+    from ..salemplayer import Player
+    from ..moment import Moment
     from ..salemplayer import SalemPlayer
+
+
+class KilledByMafia(Death):
+    def __init__(self, moment: "Moment", killer: "Player"):
+        super().__init__(moment)
+        self.killer: "Player" = killer
 
 
 class Mafioso(SalemRole, SingleTarget):
@@ -16,8 +27,10 @@ class Mafioso(SalemRole, SingleTarget):
     # TODO: just for testing!
     default_objective = PendingObjective
 
+    def __init__(self, player: "SalemPlayer"):
+        super().__init__(player)
+
     def on_dawn(self):
-        """Kill the target at dawn."""
         self.player: SalemPlayer
 
         if self.player.death:
@@ -25,11 +38,16 @@ class Mafioso(SalemRole, SingleTarget):
         if self.target is None:
             return
         self.target.die(KilledByMafia(self.game.moment, self.player))
-        self.game.send_event(MafiaKill(to=self.game.players.by_randomness(), dead=self.target, killer=self))
+        self.game.event_manager.post(PlayerDied(channel="main", dead=self.target))
         self._target = None
 
-    def get_target_change_destination(self) -> List["SalemPlayer"]:
-        return self.game.players.with_role(Mafioso)
+    # noinspection PyMethodMayBeStatic
+    def target_change_event_channel(self) -> str:
+        return "mafia"
+
+    # noinspection PyMethodMayBeStatic
+    def available_chat_channels(self) -> List[str]:
+        return ["main", "mafia"]
 
     def get_valid_targets(self) -> List["SalemPlayer"]:
         return [player for player in self.game.players.by_name() if player.death is None]
