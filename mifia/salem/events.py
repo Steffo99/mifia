@@ -1,8 +1,10 @@
 from typing import Optional, TYPE_CHECKING, Dict
+
 from ..events import Event
+
 if TYPE_CHECKING:
+    from ..player import Player
     from .moment import Moment
-    from .salemplayer import SalemPlayer
     from .judgement import Judgement
 
 
@@ -10,31 +12,31 @@ class PlayerDied(Event):
     """A player has died."""
     def __init__(self,
                  channel: str,
-                 dead: "SalemPlayer"):
+                 dead: "Player"):
         super().__init__(channel)
-        self.dead: SalemPlayer = dead
+        self.dead: "Player" = dead
 
 
 class TrialStart(Event):
     """Votes to put a player on trial has ended."""
     def __init__(self,
                  channel: str,
-                 on_trial: "SalemPlayer",
-                 votes: Dict["SalemPlayer", "SalemPlayer"]):
+                 on_trial: "Player",
+                 votes: Dict["Player", "Player"]):
         super().__init__(channel)
-        self.on_trial: "SalemPlayer" = on_trial
-        self.votes: Dict["SalemPlayer", "SalemPlayer"] = votes
+        self.on_trial: "Player" = on_trial
+        self.votes: Dict["Player", "Player"] = votes
 
 
 class PassedJudgement(Event):
     """A judgement was passed to the on-trial player."""
     def __init__(self,
                  channel: str,
-                 on_trial: "SalemPlayer",
-                 judgements: Dict["SalemPlayer", "Judgement"]):
+                 on_trial: "Player",
+                 judgements: Dict["Player", "Judgement"]):
         super().__init__(channel)
-        self.on_trial: "SalemPlayer" = on_trial
-        self.judgements: Dict["SalemPlayer", "Judgement"] = judgements
+        self.on_trial: "Player" = on_trial
+        self.judgements: Dict["Player", "Judgement"] = judgements
 
 
 class Lynch(PlayerDied):

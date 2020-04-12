@@ -10,13 +10,13 @@ from .judgement import Judgement
 from . import events
 
 if TYPE_CHECKING:
-    from .salemplayer import SalemPlayer
+    from ..player import Player
     from ..rolelist import RoleList
     from ..namelists import NameList
 
 
 class LynchedByTheTown(Death):
-    def __init__(self, moment: "Moment", judgements: Dict["SalemPlayer", "Judgement"]):
+    def __init__(self, moment: "Moment", judgements: Dict["Player", "Judgement"]):
         super().__init__(moment)
         self.judgements = judgements
 
@@ -31,7 +31,7 @@ class Salem(Game):
 
     def __init__(self, rolelist: "RoleList", namelist: "NameList"):
         super().__init__(rolelist, namelist)
-        self.on_trial: Optional["SalemPlayer"] = None
+        self.on_trial: Optional["Player"] = None
         self.moment: Moment = Moment(phase=GamePhase.NIGHT, cycle=0)
 
     def require_gamephase(self, *phases):
@@ -40,20 +40,22 @@ class Salem(Game):
                                     f"currently is in {self.moment.phase}")
 
     @property
-    def votes(self) -> Dict["SalemPlayer", "SalemPlayer"]:
-        d: Dict["SalemPlayer", "SalemPlayer"] = {}
+    def votes(self) -> Dict["Player", "Player"]:
+        d: Dict["Player", "Player"] = {}
         for player in self.players.by_randomness():
-            player: "SalemPlayer"
-            d[player] = player.vote
+            player: "Player"
+            d[player] = player.role.vote
         return d
 
-    def vote_count(self) -> Dict["SalemPlayer", int]:
+    def vote_count(self) -> Dict["Player", int]:
         self.require_gamestate(GameState.IN_PROGRESS)
         self.require_gamephase(GamePhase.DAY, GamePhase.DUSK, GamePhase.NIGHT)
-        counts: Dict["SalemPlayer", int] = {}
+        counts: Dict["Player", int] = {}
         for player in self.players.by_randomness():
             counts[player] = 0
         for player in self.votes.values():
+            if player is None:
+                continue
             counts[player] += 1
         return counts
 
@@ -64,10 +66,10 @@ class Salem(Game):
         return sorted(counts, key=lambda p: -counts[p])
 
     @property
-    def judgements(self) -> Dict["SalemPlayer", Judgement]:
+    def judgements(self) -> Dict["Player", Judgement]:
         d = {}
         for player in self.players.by_randomness():
-            d[player] = player.judgement
+            d[player] = player.role.judgement
         return d
 
     def judgements_count(self) -> int:
@@ -119,7 +121,7 @@ class Salem(Game):
                               votes=self.votes)
         )
         for player in self.players.by_priority():
-            player.vote = None
+            player.role.vote = None
 
     def end_dusk(self):
         self.require_gamestate(GameState.IN_PROGRESS)
@@ -139,13 +141,13 @@ class Salem(Game):
                                    judgements=self.judgements)
         )
         if vote_score < 0:
-            self.on_trial.die(LynchedByTheTown(self.moment, self.judgements))
+            self.on_trial.role.die(LynchedByTheTown(self.moment, self.judgements))
             self.event_manager.post(
                 events.Lynch(channel="main",
                              dead=self.on_trial))
         self.on_trial = None
         for player in self.players.by_priority():
-            player.judgement = None
+            player.role.judgement = None
 
     def end_night(self):
         self.require_gamestate(GameState.IN_PROGRESS)

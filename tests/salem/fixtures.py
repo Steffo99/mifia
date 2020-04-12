@@ -1,7 +1,7 @@
 import pytest
 
 from mifia.salem.salem import Salem
-from mifia.salem.salemplayer import SalemPlayer
+from mifia.player import Player
 from mifia.namelists.royalgames import RoyalGames
 from mifia.salem.rolelists.simple import SimpleRoleList
 
@@ -15,11 +15,11 @@ def empty_salem_game() -> Salem:
 def basic_salem_game() -> Salem:
     g = Salem(namelist=RoyalGames(), rolelist=SimpleRoleList())
 
-    g.player_join(SalemPlayer(g))
-    g.player_join(SalemPlayer(g))
-    g.player_join(SalemPlayer(g))
-    g.player_join(SalemPlayer(g))
-    g.player_join(SalemPlayer(g))
+    g.player_join(Player(g))
+    g.player_join(Player(g))
+    g.player_join(Player(g))
+    g.player_join(Player(g))
+    g.player_join(Player(g))
 
     g.start_game()
 

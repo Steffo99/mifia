@@ -39,3 +39,10 @@ class EventManager:
             self._subscribers[channel] = PlayerList()
         if player not in self._subscribers[channel]:
             self._subscribers[channel].add(player)
+
+    def unsubscribe(self, player: "Player", channel: str):
+        if not isinstance(channel, str):
+            raise TypeError("Channel names must be strings.")
+        if channel not in self._subscribers:
+            return
+        self._subscribers[channel].remove(player)

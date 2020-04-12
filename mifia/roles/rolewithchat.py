@@ -26,7 +26,7 @@ class InaccessibleChannelError(GameError):
     """The role is not authorized to send chat messages in the specified channel."""
 
 
-class CanChat(Role):
+class RoleWithChat(Role):
     """A role that can send messages in a specific list of channels. """
 
     def __init__(self, player: "Player"):
@@ -34,7 +34,7 @@ class CanChat(Role):
 
     # noinspection PyMethodMayBeStatic
     def available_chat_channels(self) -> List[str]:
-        """A list of channels where this Role can send messages in."""
+        """A list of channels in which this Role can send messages in."""
         return ["main"]
 
     def chat(self, channel: str, msg: str):

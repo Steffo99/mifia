@@ -7,9 +7,8 @@ from ..events import PlayerDied
 from .salemrole import SalemRole
 
 if TYPE_CHECKING:
-    from ..salemplayer import Player
+    from ...player import Player
     from ..moment import Moment
-    from ..salemplayer import SalemPlayer
 
 
 class KilledByMafia(Death):
@@ -27,27 +26,40 @@ class Mafioso(SalemRole, SingleTarget):
     # TODO: just for testing!
     default_objective = PendingObjective
 
-    def __init__(self, player: "SalemPlayer"):
+    def __init__(self, player: "Player"):
         super().__init__(player)
 
-    def on_dawn(self):
-        self.player: SalemPlayer
+    def on_dawn(self) -> None:
+        self.player: "Player"
 
-        if self.player.death:
+        if self.death:
             return
         if self.target is None:
             return
-        self.target.die(KilledByMafia(self.game.moment, self.player))
+        self.target.role.die(KilledByMafia(self.game.moment, self.player))
         self.game.event_manager.post(PlayerDied(channel="main", dead=self.target))
         self._target = None
 
-    # noinspection PyMethodMayBeStatic
+    def on_day(self) -> None:
+        pass
+
+    def on_dusk(self) -> None:
+        pass
+
+    def on_night(self) -> None:
+        pass
+
+    def on_death(self) -> None:
+        pass
+
     def target_change_event_channel(self) -> str:
         return "mafia"
 
-    # noinspection PyMethodMayBeStatic
     def available_chat_channels(self) -> List[str]:
-        return ["main", "mafia"]
+        available = super().available_chat_channels()
+        if self.alive:
+            available.append("mafia")
+        return available
 
-    def get_valid_targets(self) -> List["SalemPlayer"]:
-        return [player for player in self.game.players.by_name() if player.death is None]
+    def get_valid_targets(self) -> List["Player"]:
+        return [player for player in self.game.players.by_name() if player.role.death is None]
