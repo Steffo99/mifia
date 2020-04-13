@@ -5,7 +5,7 @@ from .salemrole import SalemRole
 
 
 class Villager(SalemRole):
-    """A role that does nothing."""
+    """A role that does nothing special."""
 
     name: str = "Villager"
     default_priority: int = 0

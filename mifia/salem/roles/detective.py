@@ -2,27 +2,26 @@ from typing import TYPE_CHECKING, List
 
 from ...objectives import PendingObjective
 from ...roles.singletarget import SingleTarget
-from ..death import Death
-from ..events import PlayerDied
+from ..events import Event
 from .salemrole import SalemRole
 
 if TYPE_CHECKING:
     from ...player import Player
-    from ..moment import Moment
+    from ...roles.role import Role
 
 
-class KilledByMafia(Death):
-    """The player was killed by a :class:`Mafioso`."""
-    def __init__(self, moment: "Moment", killer: "Player"):
-        super().__init__(moment)
-        self.killer: "Player" = killer
+class DetectiveRoleDiscovery(Event):
+    """A :class:`Detective` has discovered another player's role."""
+    def __init__(self, channel: str, role: "Role"):
+        super().__init__(channel)
+        self.role: "Role" = role
 
 
-class Mafioso(SalemRole, SingleTarget):
+class Detective(SalemRole, SingleTarget):
     """A role that can target another player and kill them at dawn."""
 
-    name: str = "Mafioso"
-    default_priority: int = 1
+    name: str = "Detective"
+    default_priority: int = 0
 
     # TODO: just for testing!
     default_objective = PendingObjective
@@ -37,8 +36,8 @@ class Mafioso(SalemRole, SingleTarget):
             return
         if self.target is None:
             return
-        self.target.role.die(KilledByMafia(self.game.moment, self.player))
-        self.game.event_manager.post(PlayerDied(channel="main", dead=self.target))
+        self.game.event_manager.post(DetectiveRoleDiscovery(channel=self.player.loopback_channel(),
+                                                            role=self.target.role))
         self._target = None
 
     def on_day(self) -> None:
@@ -54,13 +53,10 @@ class Mafioso(SalemRole, SingleTarget):
         pass
 
     def target_change_event_channel(self) -> str:
-        return "mafia"
+        return self.player.loopback_channel()
 
     def available_chat_channels(self) -> List[str]:
-        available = super().available_chat_channels()
-        if self.alive:
-            available.append("mafia")
-        return available
+        return super().available_chat_channels()
 
     def get_valid_targets(self) -> List["Player"]:
         return [player for player in self.game.players.by_name() if player.role.death is None]

@@ -11,12 +11,24 @@ if TYPE_CHECKING:
 
 
 class SalemRole(RoleWithChat, metaclass=abc.ABCMeta):
+    """The abstract class for Salem roles. All other roles should inherit from this, plus optionally from other traits,
+    such as :class:`SingleTarget`.
+
+    Attributes:
+        vote:
+            The :class:`Player` that is being voted by this role's player, or ``None`` if this player isn't voting
+            for anyone. It's reset to ``None`` after every vote.
+        judgement:
+            How this role's player has decided to judge the player currently on trial. It's reset to
+            :const:`Judgement.ABSTAINED` after every vote.
+    """
+
     def __init__(self, player: Player):
         super().__init__(player)
 
-        self.death: Optional["Death"] = None
+        self._death: Optional["Death"] = None
         self.vote: Optional[Player] = None
-        self.judgement: Optional[Judgement] = Judgement.ABSTAINED
+        self.judgement: Judgement = Judgement.ABSTAINED
 
     def die(self, death: "Death") -> None:
         """Kill the player having this role.
@@ -29,12 +41,17 @@ class SalemRole(RoleWithChat, metaclass=abc.ABCMeta):
         """
         self.game.require_gamestate(GameState.IN_PROGRESS)
         self.on_death()
-        self.death = death
+        self._death = death
+
+    @property
+    def death(self):
+        """``None`` if the player is alive, their :class:`Death` otherwise."""
+        return self._death
 
     @property
     def alive(self) -> bool:
         """If the player is alive or not."""
-        return self.death is None
+        return self._death is None
 
     @property
     def dead(self) -> bool:
